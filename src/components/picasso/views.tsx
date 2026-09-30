@@ -1,11 +1,15 @@
 import { useMemo, useState } from "react";
 import {
+  Bell,
+  Car,
   Download,
   Minus,
+  NotebookPen,
   PackagePlus,
   Plus,
   ShoppingCart,
   Trash2,
+  UserRound,
   UserPlus,
 } from "lucide-react";
 import { BITACORA, INSUMOS, USUARIOS, estadoStock, type Insumo } from "@/lib/picasso-data";
@@ -80,6 +84,9 @@ export function Dashboard() {
 
 export function Reabastecer() {
   const [cantidades, setCantidades] = useState<Record<string, number>>({});
+  const [minimos, setMinimos] = useState<Record<string, number>>(() =>
+    Object.fromEntries(INSUMOS.map((i) => [i.id, i.minimo])),
+  );
   const total = Object.values(cantidades).reduce((a, b) => a + b, 0);
 
   return (
