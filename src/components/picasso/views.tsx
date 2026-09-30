@@ -280,7 +280,8 @@ export function Usuarios() {
 /* ---------------- Reportes ---------------- */
 
 export function Reportes() {
-  const tone = (a: string) => (a === "ENTRADA" ? "success" : a === "SALIDA" ? "danger" : "muted") as const;
+  const tone = (a: string): "success" | "danger" | "muted" =>
+    a === "ENTRADA" ? "success" : a === "SALIDA" ? "danger" : "muted";
   return (
     <>
       <PageTitle

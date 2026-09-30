@@ -49,7 +49,7 @@ function App() {
 
   const irA = (s: Seccion) => {
     setSeccion(s);
-    setVista(SIDEBAR[s].items[0].id);
+    setVista(SIDEBAR[s].items[0]!.id);
   };
 
   const topbar = [
