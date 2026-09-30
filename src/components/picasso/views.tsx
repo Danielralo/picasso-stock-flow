@@ -116,6 +116,30 @@ export function Reabastecer() {
                   onChange={(next) => setCantidades((prev) => ({ ...prev, [i.id]: next }))}
                 />
               </div>
+              <div className="mt-3 flex items-center justify-between rounded-xl bg-secondary/60 px-3 py-2">
+                <label
+                  htmlFor={`min-${i.id}`}
+                  className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground"
+                >
+                  <Bell className="h-3.5 w-3.5" /> Límite de alerta
+                </label>
+                <div className="flex items-center gap-1.5">
+                  <input
+                    id={`min-${i.id}`}
+                    type="number"
+                    min={0}
+                    value={minimos[i.id] ?? i.minimo}
+                    onChange={(e) =>
+                      setMinimos((prev) => ({
+                        ...prev,
+                        [i.id]: Math.max(0, Number(e.target.value) || 0),
+                      }))
+                    }
+                    className="w-16 rounded-lg border border-border bg-card px-2 py-1 text-center text-sm font-semibold tabular-nums text-foreground outline-none transition-colors focus:border-sand"
+                  />
+                  <span className="text-xs text-muted-foreground">{i.unidad}</span>
+                </div>
+              </div>
             </div>
           </Card>
         ))}
