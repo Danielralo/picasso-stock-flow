@@ -168,6 +168,9 @@ export function Reabastecer() {
 
 export function Entregar() {
   const [carrito, setCarrito] = useState<Record<string, number>>({});
+  const [trabajador, setTrabajador] = useState("");
+  const [vehiculo, setVehiculo] = useState("");
+  const [notas, setNotas] = useState("");
   const items = useMemo(
     () => INSUMOS.filter((i) => (carrito[i.id] ?? 0) > 0).map((i) => ({ insumo: i, cant: carrito[i.id] })),
     [carrito],
@@ -249,10 +252,67 @@ export function Entregar() {
               </ul>
             )}
 
+            <div className="mt-5 space-y-3 border-t border-border/70 pt-5">
+              <div>
+                <label
+                  htmlFor="trabajador"
+                  className="mb-1.5 inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+                >
+                  <UserRound className="h-3.5 w-3.5" /> Trabajador que recibe
+                </label>
+                <input
+                  id="trabajador"
+                  type="text"
+                  value={trabajador}
+                  onChange={(e) => setTrabajador(e.target.value)}
+                  placeholder="Ej. Javier Ortega"
+                  className="w-full rounded-xl border border-border bg-card px-3.5 py-2.5 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/60 focus:border-sand"
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="vehiculo"
+                  className="mb-1.5 inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+                >
+                  <Car className="h-3.5 w-3.5" /> Vehículo / Proyecto
+                </label>
+                <input
+                  id="vehiculo"
+                  type="text"
+                  value={vehiculo}
+                  onChange={(e) => setVehiculo(e.target.value)}
+                  placeholder="Ej. Versa 2017"
+                  className="w-full rounded-xl border border-border bg-card px-3.5 py-2.5 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/60 focus:border-sand"
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="notas"
+                  className="mb-1.5 inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+                >
+                  <NotebookPen className="h-3.5 w-3.5" /> Notas de entrega{" "}
+                  <span className="font-normal normal-case text-muted-foreground/70">(opcional)</span>
+                </label>
+                <textarea
+                  id="notas"
+                  value={notas}
+                  onChange={(e) => setNotas(e.target.value)}
+                  placeholder="Observaciones adicionales…"
+                  rows={3}
+                  className="w-full resize-none rounded-xl border border-border bg-card px-3.5 py-2.5 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/60 focus:border-sand"
+                />
+              </div>
+            </div>
+
             <Pill
               variant="primary"
               className="mt-5 w-full"
-              onClick={() => setCarrito({})}
+              onClick={() => {
+                setCarrito({});
+                setTrabajador("");
+                setVehiculo("");
+                setNotas("");
+              }}
             >
               <ShoppingCart className="h-4 w-4" /> Registrar retiro
             </Pill>
