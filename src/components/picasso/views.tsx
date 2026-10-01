@@ -231,6 +231,9 @@ export function Entregar() {
   const [trabajador, setTrabajador] = useState("");
   const [vehiculo, setVehiculo] = useState("");
   const [notas, setNotas] = useState("");
+  const [busqueda, setBusqueda] = useState("");
+  const [categoria, setCategoria] = useState("Todas");
+  const catalogo = filtrarInsumos(busqueda, categoria);
   const items = useMemo(
     () => INSUMOS.filter((i) => (carrito[i.id] ?? 0) > 0).map((i) => ({ insumo: i, cant: carrito[i.id] })),
     [carrito],
@@ -245,26 +248,40 @@ export function Entregar() {
       <div className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
         <Card>
           <CardHeader title="Catálogo de insumos" subtitle="Añade al carrito de entrega" />
-          <ul>
-            {INSUMOS.map((i) => (
-              <li key={i.id} className="flex items-center gap-4 border-t border-border/70 px-5 py-3 transition-colors hover:bg-secondary/70">
-                <img src={i.imagen} alt="" loading="lazy" width={816} height={816} className="h-12 w-12 rounded-lg bg-secondary object-cover" />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium text-foreground">{i.nombre}</p>
-                  <p className="text-xs text-muted-foreground">
-                    Disponible: {i.existencia} {i.unidad}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => add(i, 1)}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-sand px-4 py-2 text-xs font-semibold text-sand-foreground transition-colors hover:bg-sand/80"
-                >
-                  <Plus className="h-3.5 w-3.5" /> Añadir
-                </button>
-              </li>
-            ))}
-          </ul>
+          <div className="border-t border-border/70 px-5 py-4">
+            <BuscadorInsumos
+              busqueda={busqueda}
+              setBusqueda={setBusqueda}
+              categoria={categoria}
+              setCategoria={setCategoria}
+            />
+            {catalogo.length === 0 ? (
+              <p className="py-8 text-center text-sm text-muted-foreground">
+                No se encontraron insumos con ese criterio.
+              </p>
+            ) : (
+              <ul className="-mx-2">
+                {catalogo.map((i) => (
+                  <li key={i.id} className="flex items-center gap-4 rounded-xl px-2 py-3 transition-colors hover:bg-secondary/70">
+                    <img src={i.imagen} alt="" loading="lazy" width={816} height={816} className="h-12 w-12 rounded-lg bg-secondary object-cover" />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-medium text-foreground">{i.nombre}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {i.categoria} · Disponible: {i.existencia} {i.unidad}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => add(i, 1)}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-sand px-4 py-2 text-xs font-semibold text-sand-foreground transition-colors hover:bg-sand/80"
+                    >
+                      <Plus className="h-3.5 w-3.5" /> Añadir
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </Card>
 
         <Card className="h-fit">
