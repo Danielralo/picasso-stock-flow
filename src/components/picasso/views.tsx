@@ -1,21 +1,81 @@
 import { useMemo, useState } from "react";
 import {
+  Ban,
   Bell,
   Car,
   Download,
+  FileSpreadsheet,
   Minus,
   NotebookPen,
   PackagePlus,
   Plus,
+  RotateCcw,
+  Search,
   ShoppingCart,
   Trash2,
   UserRound,
   UserPlus,
 } from "lucide-react";
-import { BITACORA, INSUMOS, USUARIOS, estadoStock, type Insumo } from "@/lib/picasso-data";
+import { BITACORA, CATEGORIAS, INSUMOS, USUARIOS, estadoStock, type Insumo } from "@/lib/picasso-data";
 import { Badge, Card, CardHeader, PageTitle, Pill, Stepper, Td, Th } from "./ui-bits";
 
 const rowHover = "border-t border-border/70 transition-colors hover:bg-secondary/70";
+
+/* ---------------- Buscador + filtro de categoría ---------------- */
+
+function BuscadorInsumos({
+  busqueda,
+  setBusqueda,
+  categoria,
+  setCategoria,
+}: {
+  busqueda: string;
+  setBusqueda: (v: string) => void;
+  categoria: string;
+  setCategoria: (v: string) => void;
+}) {
+  return (
+    <div className="mb-5 flex flex-wrap items-center gap-3">
+      <div className="relative min-w-[240px] flex-1 sm:max-w-sm">
+        <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <input
+          type="text"
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+          placeholder="Buscar insumo por nombre…"
+          aria-label="Buscar insumo por nombre"
+          className="w-full rounded-full border border-border bg-card py-2.5 pl-10 pr-4 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/60 focus:border-sand"
+        />
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
+        {CATEGORIAS.map((c) => (
+          <button
+            key={c}
+            type="button"
+            onClick={() => setCategoria(c)}
+            aria-pressed={categoria === c}
+            className={
+              categoria === c
+                ? "rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground transition-colors"
+                : "rounded-full border border-border bg-card px-4 py-2 text-xs font-semibold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            }
+          >
+            {c}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function filtrarInsumos(busqueda: string, categoria: string): Insumo[] {
+  const q = busqueda.trim().toLowerCase();
+  return INSUMOS.filter(
+    (i) =>
+      i.nombre.toLowerCase().includes(q) &&
+      (categoria === "Todas" || i.categoria === categoria),
+  );
+}
 
 /* ---------------- Dashboard ---------------- */
 
