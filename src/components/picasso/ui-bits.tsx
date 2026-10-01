@@ -29,7 +29,7 @@ type PillProps = {
   type?: "button" | "submit";
 };
 
-export function Pill({ children, variant = "primary", className, onClick, type = "button" }: PillProps) {
+export function Pill({ children, variant = "primary", className, onClick, type = "button", disabled }: PillProps & { disabled?: boolean }) {
   const styles = {
     primary: "bg-primary text-primary-foreground hover:bg-primary/90",
     sand: "bg-sand text-sand-foreground hover:bg-sand/80",
@@ -39,6 +39,7 @@ export function Pill({ children, variant = "primary", className, onClick, type =
     <button
       type={type}
       onClick={onClick}
+      disabled={disabled}
       className={cn(
         "inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
         styles,
