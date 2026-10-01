@@ -1,4 +1,6 @@
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   Ban,
   Bell,
@@ -16,7 +18,7 @@ import {
   UserRound,
   UserPlus,
 } from "lucide-react";
-import { BITACORA, CATEGORIAS, INSUMOS, USUARIOS, estadoStock, type Insumo } from "@/lib/picasso-data";
+import { BITACORA, CATEGORIAS, INSUMOS, ROLES, USUARIOS, type Usuario, estadoStock, type Insumo } from "@/lib/picasso-data";
 import { Badge, Card, CardHeader, PageTitle, Pill, Stepper, Td, Th } from "./ui-bits";
 
 const rowHover = "border-t border-border/70 transition-colors hover:bg-secondary/70";
@@ -251,11 +253,27 @@ export function Entregar() {
   const [categoria, setCategoria] = useState("Todas");
   const catalogo = filtrarInsumos(busqueda, categoria);
   const items = useMemo(
-    () => INSUMOS.filter((i) => (carrito[i.id] ?? 0) > 0).map((i) => ({ insumo: i, cant: carrito[i.id] })),
+    () => INSUMOS.filter((i) => (carrito[i.id] ?? 0) > 0).map((i) => ({ insumo: i, cant: carrito[i.id]! })),
     [carrito],
   );
   const add = (i: Insumo, delta: number) =>
-    setCarrito((prev) => ({ ...prev, [i.id]: Math.max(0, (prev[i.id] ?? 0) + delta) }));
+    setCarrito((prev) => ({ ...prev, [i.id]: Math.round(Math.max(0, (prev[i.id] ?? 0) + delta) * 100) / 100 }));
+  const [intentado, setIntentado] = useState(false);
+  const faltaTrabajador = trabajador.trim() === "";
+  const faltaVehiculo = vehiculo.trim() === "";
+  const puedeRegistrar = items.length > 0 && !faltaTrabajador && !faltaVehiculo;
+  const registrar = () => {
+    setIntentado(true);
+    if (!puedeRegistrar) return;
+    const nota = `Entregado a: ${trabajador.trim()} | Vehículo: ${vehiculo.trim()}${notas.trim() ? ` | Nota: ${notas.trim()}` : ""}`;
+    console.info("Registro de salida →", { nota, items: items.map((x) => ({ id: x.insumo.id, cantidad: x.cant })) });
+    toast.success("Retiro registrado", { description: nota });
+    setCarrito({});
+    setTrabajador("");
+    setVehiculo("");
+    setNotas("");
+    setIntentado(false);
+  };
 
   return (
     <>
@@ -314,23 +332,11 @@ export function Entregar() {
                       <p className="text-xs text-muted-foreground">{insumo.unidad}</p>
                     </div>
                     <div className="flex items-center gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => add(insumo, -1)}
-                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-card transition-colors hover:bg-sand"
-                        aria-label="Restar"
-                      >
-                        <Minus className="h-3.5 w-3.5" />
-                      </button>
-                      <span className="w-6 text-center text-sm font-semibold tabular-nums">{cant}</span>
-                      <button
-                        type="button"
-                        onClick={() => add(insumo, 1)}
-                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-card transition-colors hover:bg-sand"
-                        aria-label="Sumar"
-                      >
-                        <Plus className="h-3.5 w-3.5" />
-                      </button>
+                      <Stepper
+                        value={cant}
+                        label={`Cantidad de ${insumo.nombre}`}
+                        onChange={(n) => setCarrito((p) => ({ ...p, [insumo.id]: n }))}
+                      />
                       <button
                         type="button"
                         onClick={() => setCarrito((p) => ({ ...p, [insumo.id]: 0 }))}
@@ -351,7 +357,7 @@ export function Entregar() {
                   htmlFor="trabajador"
                   className="mb-1.5 inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
                 >
-                  <UserRound className="h-3.5 w-3.5" /> Trabajador que recibe
+                  <UserRound className="h-3.5 w-3.5" /> Trabajador que recibe <span className="text-danger">*</span>
                 </label>
                 <input
                   id="trabajador"
@@ -359,15 +365,18 @@ export function Entregar() {
                   value={trabajador}
                   onChange={(e) => setTrabajador(e.target.value)}
                   placeholder="Ej. Javier Ortega"
-                  className="w-full rounded-xl border border-border bg-card px-3.5 py-2.5 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/60 focus:border-sand"
+                  required
+                  aria-invalid={intentado && faltaTrabajador}
+                  className="w-full rounded-xl border border-border aria-[invalid=true]:border-danger bg-card px-3.5 py-2.5 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/60 focus:border-sand"
                 />
+                {intentado && faltaTrabajador && <p className="mt-1 text-xs text-danger">Indica quién recibe el material.</p>}
               </div>
               <div>
                 <label
                   htmlFor="vehiculo"
                   className="mb-1.5 inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
                 >
-                  <Car className="h-3.5 w-3.5" /> Vehículo / Proyecto
+                  <Car className="h-3.5 w-3.5" /> Vehículo / Proyecto <span className="text-danger">*</span>
                 </label>
                 <input
                   id="vehiculo"
@@ -375,8 +384,11 @@ export function Entregar() {
                   value={vehiculo}
                   onChange={(e) => setVehiculo(e.target.value)}
                   placeholder="Ej. Versa 2017"
-                  className="w-full rounded-xl border border-border bg-card px-3.5 py-2.5 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/60 focus:border-sand"
+                  required
+                  aria-invalid={intentado && faltaVehiculo}
+                  className="w-full rounded-xl border border-border aria-[invalid=true]:border-danger bg-card px-3.5 py-2.5 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/60 focus:border-sand"
                 />
+                {intentado && faltaVehiculo && <p className="mt-1 text-xs text-danger">Indica el vehículo o proyecto.</p>}
               </div>
               <div>
                 <label
@@ -399,16 +411,17 @@ export function Entregar() {
 
             <Pill
               variant="primary"
-              className="mt-5 w-full"
-              onClick={() => {
-                setCarrito({});
-                setTrabajador("");
-                setVehiculo("");
-                setNotas("");
-              }}
+              className="mt-5 w-full disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={!puedeRegistrar}
+              onClick={registrar}
             >
               <ShoppingCart className="h-4 w-4" /> Registrar retiro
             </Pill>
+            {!puedeRegistrar && (
+              <p className="mt-2 text-center text-xs text-muted-foreground">
+                {items.length === 0 ? "Añade al menos un insumo al carrito." : "Completa trabajador y vehículo para registrar."}
+              </p>
+            )}
           </div>
         </Card>
       </div>
@@ -419,7 +432,18 @@ export function Entregar() {
 /* ---------------- Usuarios ---------------- */
 
 export function Usuarios() {
-  const [cuentas, setCuentas] = useState(USUARIOS);
+  const [cuentas, setCuentas] = useState<Usuario[]>(USUARIOS);
+  const [abierto, setAbierto] = useState(false);
+  const [nuevo, setNuevo] = useState({ nombre: "", usuario: "", rol: "Encargado" as Usuario["rol"] });
+  const valido = nuevo.nombre.trim().length > 1 && /^[a-z0-9._]{3,20}$/.test(nuevo.usuario.trim());
+  const crear = () => {
+    if (!valido) return;
+    setCuentas((p) => [...p, { id: String(Date.now()), nombre: nuevo.nombre.trim(), usuario: nuevo.usuario.trim(), rol: nuevo.rol, activo: true }]);
+    toast.success("Usuario creado", { description: `${nuevo.nombre.trim()} · ${nuevo.rol}` });
+    setNuevo({ nombre: "", usuario: "", rol: "Encargado" });
+    setAbierto(false);
+  };
+  const campo = "w-full rounded-xl border border-border bg-card px-3.5 py-2.5 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/60 focus:border-sand";
 
   const cambiarEstado = (id: string) =>
     setCuentas((prev) => prev.map((u) => (u.id === id ? { ...u, activo: !u.activo } : u)));
@@ -430,7 +454,7 @@ export function Usuarios() {
         title="Usuarios"
         subtitle="Cuentas con acceso al punto de entrega."
         action={
-          <Pill variant="primary">
+          <Pill variant="primary" onClick={() => setAbierto(true)}>
             <UserPlus className="h-4 w-4" /> Crear usuario
           </Pill>
         }
@@ -478,6 +502,39 @@ export function Usuarios() {
           </table>
         </div>
       </Card>
+
+      <Dialog open={abierto} onOpenChange={setAbierto}>
+        <DialogContent className="rounded-2xl">
+          <DialogHeader>
+            <DialogTitle>Crear usuario</DialogTitle>
+            <DialogDescription>Solo administradores y encargados tienen acceso al sistema.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <label htmlFor="nu-nombre" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">Nombre completo</label>
+              <input id="nu-nombre" maxLength={80} value={nuevo.nombre} onChange={(e) => setNuevo({ ...nuevo, nombre: e.target.value })} placeholder="Ej. Lucía Márquez" className={campo} />
+            </div>
+            <div>
+              <label htmlFor="nu-usuario" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">Usuario</label>
+              <input id="nu-usuario" maxLength={20} value={nuevo.usuario} onChange={(e) => setNuevo({ ...nuevo, usuario: e.target.value.toLowerCase() })} placeholder="Ej. lmarquez" className={campo} />
+            </div>
+            <div>
+              <label htmlFor="nu-rol" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">Rol / Permisos</label>
+              <select id="nu-rol" value={nuevo.rol} onChange={(e) => setNuevo({ ...nuevo, rol: e.target.value as Usuario["rol"] })} className={campo}>
+                {ROLES.map((r) => (
+                  <option key={r} value={r}>{r === "Administrador" ? "Administrador (Dueño)" : r}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <DialogFooter className="gap-2">
+            <Pill variant="ghost" onClick={() => setAbierto(false)}>Cancelar</Pill>
+            <Pill variant="primary" onClick={crear} disabled={!valido} className="disabled:opacity-50">
+              <UserPlus className="h-4 w-4" /> Crear usuario
+            </Pill>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

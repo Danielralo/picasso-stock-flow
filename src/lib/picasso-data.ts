@@ -23,18 +23,20 @@ export const INSUMOS: Insumo[] = [
   { id: "endurecedor", nombre: "Endurecedor rápido", categoria: "Pinturas", unidad: "Litro", existencia: 18, minimo: 5, imagen: barniz },
 ];
 
+export const ROLES = ["Administrador", "Encargado"] as const;
+
 export type Usuario = {
   id: string;
   nombre: string;
   usuario: string;
-  rol: "Administrador" | "Encargado" | "Hojalatero";
+  rol: "Administrador" | "Encargado";
   activo: boolean;
 };
 
 export const USUARIOS: Usuario[] = [
   { id: "1", nombre: "Hector Ramos", usuario: "hramos", rol: "Administrador", activo: true },
   { id: "2", nombre: "Lucía Márquez", usuario: "lmarquez", rol: "Encargado", activo: true },
-  { id: "3", nombre: "Javier Ortega", usuario: "jortega", rol: "Hojalatero", activo: true },
+  { id: "3", nombre: "Andrés Salgado", usuario: "asalgado", rol: "Encargado", activo: true },
   { id: "4", nombre: "Diana Peña", usuario: "dpena", rol: "Encargado", activo: false },
 ];
 
