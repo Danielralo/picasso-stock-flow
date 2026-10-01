@@ -1,21 +1,81 @@
 import { useMemo, useState } from "react";
 import {
+  Ban,
   Bell,
   Car,
   Download,
+  FileSpreadsheet,
   Minus,
   NotebookPen,
   PackagePlus,
   Plus,
+  RotateCcw,
+  Search,
   ShoppingCart,
   Trash2,
   UserRound,
   UserPlus,
 } from "lucide-react";
-import { BITACORA, INSUMOS, USUARIOS, estadoStock, type Insumo } from "@/lib/picasso-data";
+import { BITACORA, CATEGORIAS, INSUMOS, USUARIOS, estadoStock, type Insumo } from "@/lib/picasso-data";
 import { Badge, Card, CardHeader, PageTitle, Pill, Stepper, Td, Th } from "./ui-bits";
 
 const rowHover = "border-t border-border/70 transition-colors hover:bg-secondary/70";
+
+/* ---------------- Buscador + filtro de categoría ---------------- */
+
+function BuscadorInsumos({
+  busqueda,
+  setBusqueda,
+  categoria,
+  setCategoria,
+}: {
+  busqueda: string;
+  setBusqueda: (v: string) => void;
+  categoria: string;
+  setCategoria: (v: string) => void;
+}) {
+  return (
+    <div className="mb-5 flex flex-wrap items-center gap-3">
+      <div className="relative min-w-[240px] flex-1 sm:max-w-sm">
+        <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <input
+          type="text"
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+          placeholder="Buscar insumo por nombre…"
+          aria-label="Buscar insumo por nombre"
+          className="w-full rounded-full border border-border bg-card py-2.5 pl-10 pr-4 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/60 focus:border-sand"
+        />
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
+        {CATEGORIAS.map((c) => (
+          <button
+            key={c}
+            type="button"
+            onClick={() => setCategoria(c)}
+            aria-pressed={categoria === c}
+            className={
+              categoria === c
+                ? "rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground transition-colors"
+                : "rounded-full border border-border bg-card px-4 py-2 text-xs font-semibold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            }
+          >
+            {c}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function filtrarInsumos(busqueda: string, categoria: string): Insumo[] {
+  const q = busqueda.trim().toLowerCase();
+  return INSUMOS.filter(
+    (i) =>
+      i.nombre.toLowerCase().includes(q) &&
+      (categoria === "Todas" || i.categoria === categoria),
+  );
+}
 
 /* ---------------- Dashboard ---------------- */
 
@@ -87,14 +147,29 @@ export function Reabastecer() {
   const [minimos, setMinimos] = useState<Record<string, number>>(() =>
     Object.fromEntries(INSUMOS.map((i) => [i.id, i.minimo])),
   );
+  const [busqueda, setBusqueda] = useState("");
+  const [categoria, setCategoria] = useState("Todas");
+  const filtrados = filtrarInsumos(busqueda, categoria);
   const total = Object.values(cantidades).reduce((a, b) => a + b, 0);
 
   return (
     <>
       <PageTitle title="Reabastecer insumos" subtitle="Indica la cantidad que ingresa al almacén del taller." />
 
-      <div className="grid gap-4 pb-28 sm:grid-cols-2 xl:grid-cols-3">
-        {INSUMOS.map((i) => (
+      <BuscadorInsumos
+        busqueda={busqueda}
+        setBusqueda={setBusqueda}
+        categoria={categoria}
+        setCategoria={setCategoria}
+      />
+
+      {filtrados.length === 0 ? (
+        <p className="rounded-2xl border border-border/70 bg-card px-6 py-10 text-center text-sm text-muted-foreground">
+          No se encontraron insumos con ese criterio.
+        </p>
+      ) : (
+        <div className="grid gap-4 pb-28 sm:grid-cols-2 xl:grid-cols-3">
+          {filtrados.map((i) => (
           <Card key={i.id} className="overflow-hidden transition-shadow hover:shadow-lg">
             <img src={i.imagen} alt={i.nombre} loading="lazy" width={816} height={816} className="h-40 w-full bg-secondary object-cover" />
             <div className="px-5 py-4">
@@ -142,8 +217,9 @@ export function Reabastecer() {
               </div>
             </div>
           </Card>
-        ))}
-      </div>
+            ))}
+        </div>
+      )}
 
       <div className="fixed inset-x-0 bottom-0 z-20 border-t border-border/70 bg-card/95 px-6 py-4 backdrop-blur lg:left-72">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3">
@@ -171,6 +247,9 @@ export function Entregar() {
   const [trabajador, setTrabajador] = useState("");
   const [vehiculo, setVehiculo] = useState("");
   const [notas, setNotas] = useState("");
+  const [busqueda, setBusqueda] = useState("");
+  const [categoria, setCategoria] = useState("Todas");
+  const catalogo = filtrarInsumos(busqueda, categoria);
   const items = useMemo(
     () => INSUMOS.filter((i) => (carrito[i.id] ?? 0) > 0).map((i) => ({ insumo: i, cant: carrito[i.id] })),
     [carrito],
@@ -185,26 +264,40 @@ export function Entregar() {
       <div className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
         <Card>
           <CardHeader title="Catálogo de insumos" subtitle="Añade al carrito de entrega" />
-          <ul>
-            {INSUMOS.map((i) => (
-              <li key={i.id} className="flex items-center gap-4 border-t border-border/70 px-5 py-3 transition-colors hover:bg-secondary/70">
-                <img src={i.imagen} alt="" loading="lazy" width={816} height={816} className="h-12 w-12 rounded-lg bg-secondary object-cover" />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium text-foreground">{i.nombre}</p>
-                  <p className="text-xs text-muted-foreground">
-                    Disponible: {i.existencia} {i.unidad}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => add(i, 1)}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-sand px-4 py-2 text-xs font-semibold text-sand-foreground transition-colors hover:bg-sand/80"
-                >
-                  <Plus className="h-3.5 w-3.5" /> Añadir
-                </button>
-              </li>
-            ))}
-          </ul>
+          <div className="border-t border-border/70 px-5 py-4">
+            <BuscadorInsumos
+              busqueda={busqueda}
+              setBusqueda={setBusqueda}
+              categoria={categoria}
+              setCategoria={setCategoria}
+            />
+            {catalogo.length === 0 ? (
+              <p className="py-8 text-center text-sm text-muted-foreground">
+                No se encontraron insumos con ese criterio.
+              </p>
+            ) : (
+              <ul className="-mx-2">
+                {catalogo.map((i) => (
+                  <li key={i.id} className="flex items-center gap-4 rounded-xl px-2 py-3 transition-colors hover:bg-secondary/70">
+                    <img src={i.imagen} alt="" loading="lazy" width={816} height={816} className="h-12 w-12 rounded-lg bg-secondary object-cover" />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-medium text-foreground">{i.nombre}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {i.categoria} · Disponible: {i.existencia} {i.unidad}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => add(i, 1)}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-sand px-4 py-2 text-xs font-semibold text-sand-foreground transition-colors hover:bg-sand/80"
+                    >
+                      <Plus className="h-3.5 w-3.5" /> Añadir
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </Card>
 
         <Card className="h-fit">
@@ -326,6 +419,11 @@ export function Entregar() {
 /* ---------------- Usuarios ---------------- */
 
 export function Usuarios() {
+  const [cuentas, setCuentas] = useState(USUARIOS);
+
+  const cambiarEstado = (id: string) =>
+    setCuentas((prev) => prev.map((u) => (u.id === id ? { ...u, activo: !u.activo } : u)));
+
   return (
     <>
       <PageTitle
@@ -338,25 +436,41 @@ export function Usuarios() {
         }
       />
       <Card>
-        <CardHeader title="Cuentas registradas" />
+        <CardHeader title="Cuentas registradas" subtitle="Usa el botón de opciones para dar de baja o reactivar una cuenta." />
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[640px] border-collapse">
+          <table className="w-full min-w-[720px] border-collapse">
             <thead className="bg-primary">
               <tr>
                 <Th>Nombre</Th>
                 <Th>Usuario</Th>
                 <Th>Rol</Th>
                 <Th>Estado</Th>
+                <Th className="text-right">Opciones</Th>
               </tr>
             </thead>
             <tbody>
-              {USUARIOS.map((u) => (
+              {cuentas.map((u) => (
                 <tr key={u.id} className={rowHover}>
                   <Td className="font-medium">{u.nombre}</Td>
                   <Td className="text-muted-foreground">@{u.usuario}</Td>
                   <Td>{u.rol}</Td>
                   <Td>
                     <Badge tone={u.activo ? "success" : "muted"}>{u.activo ? "ACTIVO" : "INACTIVO"}</Badge>
+                  </Td>
+                  <Td className="text-right">
+                    <button
+                      type="button"
+                      onClick={() => cambiarEstado(u.id)}
+                      title={u.activo ? "Dar de baja" : "Reactivar cuenta"}
+                      aria-label={u.activo ? `Dar de baja a ${u.nombre}` : `Reactivar cuenta de ${u.nombre}`}
+                      className={
+                        u.activo
+                          ? "inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground transition-colors hover:bg-danger hover:text-danger-foreground"
+                          : "inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground transition-colors hover:bg-sand hover:text-sand-foreground"
+                      }
+                    >
+                      {u.activo ? <Ban className="h-4 w-4" /> : <RotateCcw className="h-4 w-4" />}
+                    </button>
                   </Td>
                 </tr>
               ))}
@@ -373,19 +487,63 @@ export function Usuarios() {
 export function Reportes() {
   const tone = (a: string): "success" | "danger" | "muted" =>
     a === "ENTRADA" ? "success" : a === "SALIDA" ? "danger" : "muted";
+
+  const bajos = INSUMOS.filter((i) => estadoStock(i) !== "DISPONIBLE");
+
+  const exportarListaCompras = () => {
+    const filas = [
+      ["Insumo", "Categoría", "Existencia", "Límite de alerta", "Unidad", "Estado"],
+      ...bajos.map((i) => [i.nombre, i.categoria, String(i.existencia), String(i.minimo), i.unidad, estadoStock(i)]),
+    ];
+    const csv = filas.map((f) => f.map((c) => `"${c}"`).join(";")).join("\n");
+    const url = URL.createObjectURL(new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "lista-de-compras-picasso.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <>
       <PageTitle
-        title="Bitácora de actividades"
-        subtitle="Historial de movimientos del inventario."
-        action={
-          <Pill variant="sand">
-            <Download className="h-4 w-4" /> Exportar reporte
-          </Pill>
-        }
+        title="Reportes y auditoría"
+        subtitle="Historial de movimientos y reportes de reabastecimiento."
       />
+
+      <Card className="mb-6 border-success/40">
+        <div className="flex flex-wrap items-center justify-between gap-4 px-6 py-5">
+          <div className="flex items-center gap-4">
+            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-success/15 text-success">
+              <FileSpreadsheet className="h-5 w-5" />
+            </span>
+            <div>
+              <h3 className="text-base font-semibold text-foreground">Generar lista de compras</h3>
+              <p className="mt-0.5 text-sm text-muted-foreground">
+                Exporta exclusivamente los insumos que alcanzaron su límite de alerta ({bajos.length} actualmente).
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={exportarListaCompras}
+            className="inline-flex items-center gap-2 rounded-full bg-success px-5 py-2.5 text-sm font-semibold text-success-foreground transition-colors hover:bg-success/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <Download className="h-4 w-4" /> Exportar insumos bajos
+          </button>
+        </div>
+      </Card>
+
       <Card>
-        <CardHeader title="Movimientos recientes" />
+        <CardHeader
+          title="Bitácora de actividades"
+          subtitle="Movimientos recientes del inventario."
+          action={
+            <Pill variant="sand">
+              <Download className="h-4 w-4" /> Exportar reporte
+            </Pill>
+          }
+        />
         <div className="overflow-x-auto">
           <table className="w-full min-w-[720px] border-collapse">
             <thead className="bg-primary">
