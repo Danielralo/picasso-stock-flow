@@ -7,7 +7,6 @@ import {
   Car,
   Download,
   FileSpreadsheet,
-  Minus,
   NotebookPen,
   PackagePlus,
   Plus,
