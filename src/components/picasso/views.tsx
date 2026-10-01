@@ -217,8 +217,9 @@ export function Reabastecer() {
               </div>
             </div>
           </Card>
-        ))}
-      </div>
+            ))}
+        </div>
+      )}
 
       <div className="fixed inset-x-0 bottom-0 z-20 border-t border-border/70 bg-card/95 px-6 py-4 backdrop-blur lg:left-72">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3">
