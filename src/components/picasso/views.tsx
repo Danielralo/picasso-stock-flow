@@ -147,14 +147,29 @@ export function Reabastecer() {
   const [minimos, setMinimos] = useState<Record<string, number>>(() =>
     Object.fromEntries(INSUMOS.map((i) => [i.id, i.minimo])),
   );
+  const [busqueda, setBusqueda] = useState("");
+  const [categoria, setCategoria] = useState("Todas");
+  const filtrados = filtrarInsumos(busqueda, categoria);
   const total = Object.values(cantidades).reduce((a, b) => a + b, 0);
 
   return (
     <>
       <PageTitle title="Reabastecer insumos" subtitle="Indica la cantidad que ingresa al almacén del taller." />
 
-      <div className="grid gap-4 pb-28 sm:grid-cols-2 xl:grid-cols-3">
-        {INSUMOS.map((i) => (
+      <BuscadorInsumos
+        busqueda={busqueda}
+        setBusqueda={setBusqueda}
+        categoria={categoria}
+        setCategoria={setCategoria}
+      />
+
+      {filtrados.length === 0 ? (
+        <p className="rounded-2xl border border-border/70 bg-card px-6 py-10 text-center text-sm text-muted-foreground">
+          No se encontraron insumos con ese criterio.
+        </p>
+      ) : (
+        <div className="grid gap-4 pb-28 sm:grid-cols-2 xl:grid-cols-3">
+          {filtrados.map((i) => (
           <Card key={i.id} className="overflow-hidden transition-shadow hover:shadow-lg">
             <img src={i.imagen} alt={i.nombre} loading="lazy" width={816} height={816} className="h-40 w-full bg-secondary object-cover" />
             <div className="px-5 py-4">
