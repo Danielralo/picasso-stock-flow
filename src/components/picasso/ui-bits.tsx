@@ -94,22 +94,48 @@ export function PageTitle({ title, subtitle, action }: { title: string; subtitle
   );
 }
 
+const round2 = (n: number) => Math.round(n * 100) / 100;
+
 export function Stepper({
   value,
   onChange,
+  label = "Cantidad",
 }: {
   value: number;
   onChange: (next: number) => void;
+  label?: string;
 }) {
+  const [texto, setTexto] = useState(String(value));
+  useEffect(() => {
+    if (Number(texto) !== value) setTexto(String(value));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value]);
   const btn =
     "flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-secondary text-foreground transition-colors hover:bg-sand hover:text-sand-foreground disabled:opacity-40";
   return (
     <div className="flex items-center gap-2">
-      <button type="button" className={btn} onClick={() => onChange(Math.max(0, value - 1))} disabled={value === 0} aria-label="Restar">
+      <button type="button" className={btn} onClick={() => onChange(round2(Math.max(0, value - 1)))} disabled={value <= 0} aria-label="Restar">
         −
       </button>
-      <span className="w-10 text-center text-base font-semibold tabular-nums text-foreground">{value}</span>
-      <button type="button" className={btn} onClick={() => onChange(value + 1)} aria-label="Sumar">
+      <input
+        type="number"
+        inputMode="decimal"
+        min={0}
+        step="any"
+        aria-label={label}
+        value={texto}
+        onFocus={(e) => e.target.select()}
+        onChange={(e) => {
+          const raw = e.target.value.replace(",", ".");
+          setTexto(raw);
+          const n = Number(raw);
+          if (raw !== "" && !Number.isNaN(n)) onChange(round2(Math.max(0, n)));
+          else if (raw === "") onChange(0);
+        }}
+        onBlur={() => setTexto(String(value))}
+        className="no-spinner h-9 w-16 rounded-lg border border-transparent bg-transparent text-center text-base font-semibold tabular-nums text-foreground outline-none transition-colors hover:border-border focus:border-sand focus:bg-card"
+      />
+      <button type="button" className={btn} onClick={() => onChange(round2(value + 1))} aria-label="Sumar">
         +
       </button>
     </div>
