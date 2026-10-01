@@ -386,6 +386,11 @@ export function Entregar() {
 /* ---------------- Usuarios ---------------- */
 
 export function Usuarios() {
+  const [cuentas, setCuentas] = useState(USUARIOS);
+
+  const cambiarEstado = (id: string) =>
+    setCuentas((prev) => prev.map((u) => (u.id === id ? { ...u, activo: !u.activo } : u)));
+
   return (
     <>
       <PageTitle
@@ -398,25 +403,41 @@ export function Usuarios() {
         }
       />
       <Card>
-        <CardHeader title="Cuentas registradas" />
+        <CardHeader title="Cuentas registradas" subtitle="Usa el botón de opciones para dar de baja o reactivar una cuenta." />
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[640px] border-collapse">
+          <table className="w-full min-w-[720px] border-collapse">
             <thead className="bg-primary">
               <tr>
                 <Th>Nombre</Th>
                 <Th>Usuario</Th>
                 <Th>Rol</Th>
                 <Th>Estado</Th>
+                <Th className="text-right">Opciones</Th>
               </tr>
             </thead>
             <tbody>
-              {USUARIOS.map((u) => (
+              {cuentas.map((u) => (
                 <tr key={u.id} className={rowHover}>
                   <Td className="font-medium">{u.nombre}</Td>
                   <Td className="text-muted-foreground">@{u.usuario}</Td>
                   <Td>{u.rol}</Td>
                   <Td>
                     <Badge tone={u.activo ? "success" : "muted"}>{u.activo ? "ACTIVO" : "INACTIVO"}</Badge>
+                  </Td>
+                  <Td className="text-right">
+                    <button
+                      type="button"
+                      onClick={() => cambiarEstado(u.id)}
+                      title={u.activo ? "Dar de baja" : "Reactivar cuenta"}
+                      aria-label={u.activo ? `Dar de baja a ${u.nombre}` : `Reactivar cuenta de ${u.nombre}`}
+                      className={
+                        u.activo
+                          ? "inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground transition-colors hover:bg-danger hover:text-danger-foreground"
+                          : "inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground transition-colors hover:bg-sand hover:text-sand-foreground"
+                      }
+                    >
+                      {u.activo ? <Ban className="h-4 w-4" /> : <RotateCcw className="h-4 w-4" />}
+                    </button>
                   </Td>
                 </tr>
               ))}
