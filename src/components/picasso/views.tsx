@@ -433,19 +433,63 @@ export function Usuarios() {
 export function Reportes() {
   const tone = (a: string): "success" | "danger" | "muted" =>
     a === "ENTRADA" ? "success" : a === "SALIDA" ? "danger" : "muted";
+
+  const bajos = INSUMOS.filter((i) => estadoStock(i) !== "DISPONIBLE");
+
+  const exportarListaCompras = () => {
+    const filas = [
+      ["Insumo", "Categoría", "Existencia", "Límite de alerta", "Unidad", "Estado"],
+      ...bajos.map((i) => [i.nombre, i.categoria, String(i.existencia), String(i.minimo), i.unidad, estadoStock(i)]),
+    ];
+    const csv = filas.map((f) => f.map((c) => `"${c}"`).join(";")).join("\n");
+    const url = URL.createObjectURL(new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "lista-de-compras-picasso.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <>
       <PageTitle
-        title="Bitácora de actividades"
-        subtitle="Historial de movimientos del inventario."
-        action={
-          <Pill variant="sand">
-            <Download className="h-4 w-4" /> Exportar reporte
-          </Pill>
-        }
+        title="Reportes y auditoría"
+        subtitle="Historial de movimientos y reportes de reabastecimiento."
       />
+
+      <Card className="mb-6 border-success/40">
+        <div className="flex flex-wrap items-center justify-between gap-4 px-6 py-5">
+          <div className="flex items-center gap-4">
+            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-success/15 text-success">
+              <FileSpreadsheet className="h-5 w-5" />
+            </span>
+            <div>
+              <h3 className="text-base font-semibold text-foreground">Generar lista de compras</h3>
+              <p className="mt-0.5 text-sm text-muted-foreground">
+                Exporta exclusivamente los insumos que alcanzaron su límite de alerta ({bajos.length} actualmente).
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={exportarListaCompras}
+            className="inline-flex items-center gap-2 rounded-full bg-success px-5 py-2.5 text-sm font-semibold text-success-foreground transition-colors hover:bg-success/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <Download className="h-4 w-4" /> Exportar insumos bajos
+          </button>
+        </div>
+      </Card>
+
       <Card>
-        <CardHeader title="Movimientos recientes" />
+        <CardHeader
+          title="Bitácora de actividades"
+          subtitle="Movimientos recientes del inventario."
+          action={
+            <Pill variant="sand">
+              <Download className="h-4 w-4" /> Exportar reporte
+            </Pill>
+          }
+        />
         <div className="overflow-x-auto">
           <table className="w-full min-w-[720px] border-collapse">
             <thead className="bg-primary">
