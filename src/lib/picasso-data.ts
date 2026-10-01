@@ -5,19 +5,22 @@ import barniz from "@/assets/barniz.jpg";
 export type Insumo = {
   id: string;
   nombre: string;
+  categoria: "Pinturas" | "Solventes" | "Lijas";
   unidad: string;
   existencia: number;
   minimo: number;
   imagen: string;
 };
 
+export const CATEGORIAS = ["Todas", "Pinturas", "Solventes", "Lijas"] as const;
+
 export const INSUMOS: Insumo[] = [
-  { id: "thinner", nombre: "Thinner estándar", unidad: "Galón", existencia: 2, minimo: 8, imagen: thinner },
-  { id: "lija-600", nombre: "Lija P600", unidad: "Pliego", existencia: 0, minimo: 25, imagen: lijas },
-  { id: "barniz", nombre: "Barniz 2K alto sólido", unidad: "Litro", existencia: 4, minimo: 6, imagen: barniz },
-  { id: "thinner-acr", nombre: "Thinner acrílico", unidad: "Galón", existencia: 12, minimo: 6, imagen: thinner },
-  { id: "lija-1200", nombre: "Lija P1200", unidad: "Pliego", existencia: 9, minimo: 20, imagen: lijas },
-  { id: "endurecedor", nombre: "Endurecedor rápido", unidad: "Litro", existencia: 18, minimo: 5, imagen: barniz },
+  { id: "thinner", nombre: "Thinner estándar", categoria: "Solventes", unidad: "Galón", existencia: 2, minimo: 8, imagen: thinner },
+  { id: "lija-600", nombre: "Lija P600", categoria: "Lijas", unidad: "Pliego", existencia: 0, minimo: 25, imagen: lijas },
+  { id: "barniz", nombre: "Barniz 2K alto sólido", categoria: "Pinturas", unidad: "Litro", existencia: 4, minimo: 6, imagen: barniz },
+  { id: "thinner-acr", nombre: "Thinner acrílico", categoria: "Solventes", unidad: "Galón", existencia: 12, minimo: 6, imagen: thinner },
+  { id: "lija-1200", nombre: "Lija P1200", categoria: "Lijas", unidad: "Pliego", existencia: 9, minimo: 20, imagen: lijas },
+  { id: "endurecedor", nombre: "Endurecedor rápido", categoria: "Pinturas", unidad: "Litro", existencia: 18, minimo: 5, imagen: barniz },
 ];
 
 export type Usuario = {
