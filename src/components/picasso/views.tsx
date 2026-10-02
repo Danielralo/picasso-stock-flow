@@ -113,7 +113,6 @@ export function Dashboard() {
               <tr>
                 <Th>Insumo</Th>
                 <Th>Existencia</Th>
-                <Th>Mínimo</Th>
                 <Th>Estado</Th>
               </tr>
             </thead>
@@ -126,9 +125,6 @@ export function Dashboard() {
                   </Td>
                   <Td className="tabular-nums">
                     {i.existencia} {i.unidad}
-                  </Td>
-                  <Td className="tabular-nums text-muted-foreground">
-                    {i.minimo} {i.unidad}
                   </Td>
                   <Td>
                     <Badge tone={estadoStock(i) === "SIN EXISTENCIA" ? "danger" : "warning"}>{estadoStock(i)}</Badge>
@@ -237,6 +233,7 @@ export function Entregar() {
   const faltaTrabajador = trabajador.trim() === "";
   const faltaVehiculo = vehiculo.trim() === "";
   const puedeRegistrar = items.length > 0 && !faltaTrabajador && !faltaVehiculo;
+  const notaSalida = `Entregado a: ${trabajador.trim() || "—"} | Vehículo/Color: ${vehiculo.trim() || "—"}${notas.trim() ? ` | Nota: ${notas.trim()}` : ""}`;
   const registrar = () => {
     setIntentado(true);
     if (!puedeRegistrar) return;
@@ -383,6 +380,11 @@ export function Entregar() {
                   className="w-full resize-none rounded-xl border border-border bg-card px-3.5 py-2.5 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/60 focus:border-sand"
                 />
               </div>
+            </div>
+
+            <div className="mt-4 rounded-xl border border-dashed border-border bg-secondary/50 px-3.5 py-3">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Nota de salida que se guardará</p>
+              <p className="mt-1 break-words font-mono text-xs text-foreground">{notaSalida}</p>
             </div>
 
             <Pill

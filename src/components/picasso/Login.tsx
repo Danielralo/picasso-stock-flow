@@ -1,11 +1,15 @@
 import { useState } from "react";
-import { LogIn, Lock, User } from "lucide-react";
+import { KeyRound, LogIn, Lock, User } from "lucide-react";
+import { toast } from "sonner";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import logo from "@/assets/logo.png";
 import { Pill } from "./ui-bits";
 
 export function Login({ onLogin }: { onLogin: () => void }) {
   const [usuario, setUsuario] = useState("hramos");
   const [password, setPassword] = useState("picasso");
+  const [recuperar, setRecuperar] = useState(false);
+  const [cuenta, setCuenta] = useState("");
 
   const input =
     "w-full rounded-full border border-border bg-background py-3 pl-11 pr-4 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-sand focus:ring-2 focus:ring-sand/50";
@@ -40,6 +44,18 @@ export function Login({ onLogin }: { onLogin: () => void }) {
               aria-label="Contraseña"
             />
           </div>
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={() => {
+                setCuenta(usuario);
+                setRecuperar(true);
+              }}
+              className="text-xs font-semibold text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline"
+            >
+              ¿Olvidaste tu contraseña?
+            </button>
+          </div>
           <Pill type="submit" variant="sand" className="w-full py-3">
             <LogIn className="h-4 w-4" /> Iniciar sesión
           </Pill>
@@ -49,6 +65,41 @@ export function Login({ onLogin }: { onLogin: () => void }) {
           Prototipo de demostración · acceso simulado
         </p>
       </div>
+
+      <Dialog open={recuperar} onOpenChange={setRecuperar}>
+        <DialogContent className="rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <KeyRound className="h-5 w-5" /> Restablecer clave
+            </DialogTitle>
+            <DialogDescription>
+              Escribe tu usuario. El administrador del taller recibirá la solicitud para asignarte una clave nueva.
+            </DialogDescription>
+          </DialogHeader>
+          <input
+            value={cuenta}
+            maxLength={20}
+            onChange={(e) => setCuenta(e.target.value)}
+            placeholder="Usuario"
+            aria-label="Usuario a recuperar"
+            className="w-full rounded-full border border-border bg-background px-4 py-3 text-sm text-foreground outline-none transition-colors focus:border-sand"
+          />
+          <DialogFooter className="gap-2">
+            <Pill variant="ghost" onClick={() => setRecuperar(false)}>Cancelar</Pill>
+            <Pill
+              variant="sand"
+              disabled={cuenta.trim().length < 3}
+              className="disabled:opacity-50"
+              onClick={() => {
+                toast.success("Solicitud enviada", { description: `Se notificó al administrador para restablecer la clave de @${cuenta.trim()}.` });
+                setRecuperar(false);
+              }}
+            >
+              Enviar solicitud
+            </Pill>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </main>
   );
 }
