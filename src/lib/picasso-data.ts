@@ -1,27 +1,38 @@
 import thinner from "@/assets/thinner.jpg";
 import lijas from "@/assets/lijas.jpg";
 import barniz from "@/assets/barniz.jpg";
+import cinta from "@/assets/cinta.jpg";
+
+export type Categoria = "Lijas" | "Cintas" | "Pinturas" | "Solventes" | "Barnices";
 
 export type Insumo = {
   id: string;
+  codigo: string;
   nombre: string;
-  categoria: "Pinturas" | "Solventes" | "Lijas";
+  categoria: Categoria;
   unidad: string;
   existencia: number;
   minimo: number;
   imagen: string;
 };
 
-export const CATEGORIAS = ["Todas", "Pinturas", "Solventes", "Lijas"] as const;
+/** Orden operativo: Lijas y Cintas primero, Barnices al final. */
+export const ORDEN_CATEGORIAS: Categoria[] = ["Lijas", "Cintas", "Pinturas", "Solventes", "Barnices"];
+export const CATEGORIAS = ["Todas", ...ORDEN_CATEGORIAS] as const;
 
-export const INSUMOS: Insumo[] = [
-  { id: "thinner", nombre: "Thinner estándar", categoria: "Solventes", unidad: "Galón", existencia: 2, minimo: 8, imagen: thinner },
-  { id: "lija-600", nombre: "Lija P600", categoria: "Lijas", unidad: "Pliego", existencia: 0, minimo: 25, imagen: lijas },
-  { id: "barniz", nombre: "Barniz 2K alto sólido", categoria: "Pinturas", unidad: "Litro", existencia: 4, minimo: 6, imagen: barniz },
-  { id: "thinner-acr", nombre: "Thinner acrílico", categoria: "Solventes", unidad: "Galón", existencia: 12, minimo: 6, imagen: thinner },
-  { id: "lija-1200", nombre: "Lija P1200", categoria: "Lijas", unidad: "Pliego", existencia: 9, minimo: 20, imagen: lijas },
-  { id: "endurecedor", nombre: "Endurecedor rápido", categoria: "Pinturas", unidad: "Litro", existencia: 18, minimo: 5, imagen: barniz },
+const BASE: Insumo[] = [
+  { id: "lija-600", codigo: "LJ600", nombre: "Lija de agua grano P600", categoria: "Lijas", unidad: "Pliego", existencia: 0, minimo: 25, imagen: lijas },
+  { id: "lija-1200", codigo: "LJ1200", nombre: "Lija de agua grano P1200", categoria: "Lijas", unidad: "Pliego", existencia: 9, minimo: 20, imagen: lijas },
+  { id: "cinta-48", codigo: "CM2448", nombre: "Cinta masking automotriz 48 mm", categoria: "Cintas", unidad: "Rollo", existencia: 14, minimo: 6, imagen: cinta },
+  { id: "endurecedor", codigo: "EN4010", nombre: "Endurecedor rápido para pintura 2K", categoria: "Pinturas", unidad: "Litro", existencia: 18, minimo: 5, imagen: barniz },
+  { id: "thinner", codigo: "TH100", nombre: "Thinner estándar de limpieza", categoria: "Solventes", unidad: "Galón", existencia: 2, minimo: 8, imagen: thinner },
+  { id: "thinner-acr", codigo: "TA300", nombre: "Thinner acrílico de alta pureza", categoria: "Solventes", unidad: "Galón", existencia: 12, minimo: 6, imagen: thinner },
+  { id: "barniz", codigo: "DC2000", nombre: "Barniz 2K alto sólido transparente", categoria: "Barnices", unidad: "Litro", existencia: 4, minimo: 6, imagen: barniz },
 ];
+
+export const INSUMOS: Insumo[] = [...BASE].sort(
+  (x, y) => ORDEN_CATEGORIAS.indexOf(x.categoria) - ORDEN_CATEGORIAS.indexOf(y.categoria),
+);
 
 export const ROLES = ["Administrador", "Encargado"] as const;
 

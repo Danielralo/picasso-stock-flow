@@ -3,7 +3,6 @@ import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   Ban,
-  Bell,
   Car,
   Download,
   FileSpreadsheet,
@@ -43,8 +42,8 @@ function BuscadorInsumos({
           type="text"
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
-          placeholder="Buscar insumo por nombre…"
-          aria-label="Buscar insumo por nombre"
+          placeholder="Buscar por código o nombre…"
+          aria-label="Buscar insumo por código o nombre"
           className="w-full rounded-full border border-border bg-card py-2.5 pl-10 pr-4 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/60 focus:border-sand"
         />
       </div>
@@ -73,7 +72,7 @@ function filtrarInsumos(busqueda: string, categoria: string): Insumo[] {
   const q = busqueda.trim().toLowerCase();
   return INSUMOS.filter(
     (i) =>
-      i.nombre.toLowerCase().includes(q) &&
+      (i.nombre.toLowerCase().includes(q) || i.codigo.toLowerCase().includes(q)) &&
       (categoria === "Todas" || i.categoria === categoria),
   );
 }
@@ -114,19 +113,18 @@ export function Dashboard() {
               <tr>
                 <Th>Insumo</Th>
                 <Th>Existencia</Th>
-                <Th>Mínimo</Th>
                 <Th>Estado</Th>
               </tr>
             </thead>
             <tbody>
               {alertas.map((i) => (
                 <tr key={i.id} className={rowHover}>
-                  <Td className="font-medium">{i.nombre}</Td>
+                  <Td>
+                    <p className="font-mono text-sm font-bold tracking-wide text-foreground">{i.codigo}</p>
+                    <p className="text-xs text-muted-foreground">{i.nombre}</p>
+                  </Td>
                   <Td className="tabular-nums">
                     {i.existencia} {i.unidad}
-                  </Td>
-                  <Td className="tabular-nums text-muted-foreground">
-                    {i.minimo} {i.unidad}
                   </Td>
                   <Td>
                     <Badge tone={estadoStock(i) === "SIN EXISTENCIA" ? "danger" : "warning"}>{estadoStock(i)}</Badge>
@@ -145,9 +143,6 @@ export function Dashboard() {
 
 export function Reabastecer() {
   const [cantidades, setCantidades] = useState<Record<string, number>>({});
-  const [minimos, setMinimos] = useState<Record<string, number>>(() =>
-    Object.fromEntries(INSUMOS.map((i) => [i.id, i.minimo])),
-  );
   const [busqueda, setBusqueda] = useState("");
   const [categoria, setCategoria] = useState("Todas");
   const filtrados = filtrarInsumos(busqueda, categoria);
@@ -176,7 +171,8 @@ export function Reabastecer() {
             <div className="px-5 py-4">
               <div className="flex items-start justify-between gap-2">
                 <div>
-                  <p className="font-semibold text-foreground">{i.nombre}</p>
+                  <p className="font-mono text-lg font-bold tracking-wide text-foreground">{i.codigo}</p>
+                  <p className="text-sm text-muted-foreground">{i.nombre}</p>
                   <p className="text-xs text-muted-foreground">
                     En almacén: {i.existencia} {i.unidad}
                   </p>
@@ -191,30 +187,6 @@ export function Reabastecer() {
                   value={cantidades[i.id] ?? 0}
                   onChange={(next) => setCantidades((prev) => ({ ...prev, [i.id]: next }))}
                 />
-              </div>
-              <div className="mt-3 flex items-center justify-between rounded-xl bg-secondary/60 px-3 py-2">
-                <label
-                  htmlFor={`min-${i.id}`}
-                  className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground"
-                >
-                  <Bell className="h-3.5 w-3.5" /> Límite de alerta
-                </label>
-                <div className="flex items-center gap-1.5">
-                  <input
-                    id={`min-${i.id}`}
-                    type="number"
-                    min={0}
-                    value={minimos[i.id] ?? i.minimo}
-                    onChange={(e) =>
-                      setMinimos((prev) => ({
-                        ...prev,
-                        [i.id]: Math.max(0, Number(e.target.value) || 0),
-                      }))
-                    }
-                    className="w-16 rounded-lg border border-border bg-card px-2 py-1 text-center text-sm font-semibold tabular-nums text-foreground outline-none transition-colors focus:border-sand"
-                  />
-                  <span className="text-xs text-muted-foreground">{i.unidad}</span>
-                </div>
               </div>
             </div>
           </Card>
@@ -261,10 +233,11 @@ export function Entregar() {
   const faltaTrabajador = trabajador.trim() === "";
   const faltaVehiculo = vehiculo.trim() === "";
   const puedeRegistrar = items.length > 0 && !faltaTrabajador && !faltaVehiculo;
+  const notaSalida = `Entregado a: ${trabajador.trim() || "—"} | Vehículo/Color: ${vehiculo.trim() || "—"}${notas.trim() ? ` | Nota: ${notas.trim()}` : ""}`;
   const registrar = () => {
     setIntentado(true);
     if (!puedeRegistrar) return;
-    const nota = `Entregado a: ${trabajador.trim()} | Vehículo: ${vehiculo.trim()}${notas.trim() ? ` | Nota: ${notas.trim()}` : ""}`;
+    const nota = `Entregado a: ${trabajador.trim()} | Vehículo/Color: ${vehiculo.trim()}${notas.trim() ? ` | Nota: ${notas.trim()}` : ""}`;
     console.info("Registro de salida →", { nota, items: items.map((x) => ({ id: x.insumo.id, cantidad: x.cant })) });
     toast.success("Retiro registrado", { description: nota });
     setCarrito({});
@@ -298,7 +271,8 @@ export function Entregar() {
                   <li key={i.id} className="flex items-center gap-4 rounded-xl px-2 py-3 transition-colors hover:bg-secondary/70">
                     <img src={i.imagen} alt="" loading="lazy" width={816} height={816} className="h-12 w-12 rounded-lg bg-secondary object-cover" />
                     <div className="min-w-0 flex-1">
-                      <p className="truncate font-medium text-foreground">{i.nombre}</p>
+                      <p className="font-mono text-base font-bold tracking-wide text-foreground">{i.codigo}</p>
+                      <p className="truncate text-sm text-muted-foreground">{i.nombre}</p>
                       <p className="text-xs text-muted-foreground">
                         {i.categoria} · Disponible: {i.existencia} {i.unidad}
                       </p>
@@ -327,8 +301,8 @@ export function Entregar() {
                 {items.map(({ insumo, cant }) => (
                   <li key={insumo.id} className="flex items-center gap-3 rounded-xl bg-secondary/60 px-3 py-2.5">
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium text-foreground">{insumo.nombre}</p>
-                      <p className="text-xs text-muted-foreground">{insumo.unidad}</p>
+                      <p className="font-mono text-sm font-bold tracking-wide text-foreground">{insumo.codigo}</p>
+                      <p className="truncate text-xs text-muted-foreground">{insumo.nombre} · {insumo.unidad}</p>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <Stepper
@@ -356,7 +330,7 @@ export function Entregar() {
                   htmlFor="trabajador"
                   className="mb-1.5 inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
                 >
-                  <UserRound className="h-3.5 w-3.5" /> Trabajador que recibe <span className="text-danger">*</span>
+                  <UserRound className="h-3.5 w-3.5" /> Trabajador <span className="text-danger">*</span>
                 </label>
                 <input
                   id="trabajador"
@@ -375,14 +349,14 @@ export function Entregar() {
                   htmlFor="vehiculo"
                   className="mb-1.5 inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
                 >
-                  <Car className="h-3.5 w-3.5" /> Vehículo / Proyecto <span className="text-danger">*</span>
+                  <Car className="h-3.5 w-3.5" /> Vehículo / Color <span className="text-danger">*</span>
                 </label>
                 <input
                   id="vehiculo"
                   type="text"
                   value={vehiculo}
                   onChange={(e) => setVehiculo(e.target.value)}
-                  placeholder="Ej. Versa 2017"
+                  placeholder="Ej. Versa 2017 · Rojo"
                   required
                   aria-invalid={intentado && faltaVehiculo}
                   className="w-full rounded-xl border border-border aria-[invalid=true]:border-danger bg-card px-3.5 py-2.5 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/60 focus:border-sand"
@@ -408,6 +382,11 @@ export function Entregar() {
               </div>
             </div>
 
+            <div className="mt-4 rounded-xl border border-dashed border-border bg-secondary/50 px-3.5 py-3">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Nota de salida que se guardará</p>
+              <p className="mt-1 break-words font-mono text-xs text-foreground">{notaSalida}</p>
+            </div>
+
             <Pill
               variant="primary"
               className="mt-5 w-full disabled:cursor-not-allowed disabled:opacity-50"
@@ -418,7 +397,7 @@ export function Entregar() {
             </Pill>
             {!puedeRegistrar && (
               <p className="mt-2 text-center text-xs text-muted-foreground">
-                {items.length === 0 ? "Añade al menos un insumo al carrito." : "Completa trabajador y vehículo para registrar."}
+                {items.length === 0 ? "Añade al menos un insumo al carrito." : "Completa trabajador y vehículo/color para registrar."}
               </p>
             )}
           </div>
@@ -548,8 +527,8 @@ export function Reportes() {
 
   const exportarListaCompras = () => {
     const filas = [
-      ["Insumo", "Categoría", "Existencia", "Límite de alerta", "Unidad", "Estado"],
-      ...bajos.map((i) => [i.nombre, i.categoria, String(i.existencia), String(i.minimo), i.unidad, estadoStock(i)]),
+      ["Código", "Insumo", "Categoría", "Existencia", "Unidad", "Estado"],
+      ...bajos.map((i) => [i.codigo, i.nombre, i.categoria, String(i.existencia), i.unidad, estadoStock(i)]),
     ];
     const csv = filas.map((f) => f.map((c) => `"${c}"`).join(";")).join("\n");
     const url = URL.createObjectURL(new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" }));
@@ -576,7 +555,7 @@ export function Reportes() {
             <div>
               <h3 className="text-base font-semibold text-foreground">Generar lista de compras</h3>
               <p className="mt-0.5 text-sm text-muted-foreground">
-                Exporta exclusivamente los insumos que alcanzaron su límite de alerta ({bajos.length} actualmente).
+                Exporta exclusivamente los insumos con stock bajo o sin existencia ({bajos.length} actualmente).
               </p>
             </div>
           </div>
