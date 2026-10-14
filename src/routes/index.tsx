@@ -41,11 +41,25 @@ const SIDEBAR: Record<Seccion, { titulo: string; items: { id: Vista; label: stri
 };
 
 function App() {
-  const [logged, setLogged] = useState(false);
+  const [sesion, setSesion] = useState<Sesion | null>(null);
   const [seccion, setSeccion] = useState<Seccion>("inicio");
   const [vista, setVista] = useState<Vista>("inicio");
+  const logged = !!sesion;
+  const setLogged = (_: false) => setSesion(null);
 
-  if (!logged) return <Login onLogin={() => setLogged(true)} />;
+  if (!sesion) {
+    return (
+      <Login
+        onLogin={(s) => {
+          setSesion(s);
+          setSeccion("inicio");
+          setVista("inicio");
+        }}
+      />
+    );
+  }
+  void logged;
+  const esAdmin = sesion.rol === "Administrador";
 
   const irA = (s: Seccion) => {
     setSeccion(s);
@@ -54,8 +68,12 @@ function App() {
 
   const topbar = [
     { id: "insumos" as const, label: "Insumos", icon: Package },
-    { id: "usuarios" as const, label: "Usuarios", icon: Users },
-    { id: "reportes" as const, label: "Reportes", icon: FileText },
+    ...(esAdmin
+      ? [
+          { id: "usuarios" as const, label: "Usuarios", icon: Users },
+          { id: "reportes" as const, label: "Reportes", icon: FileText },
+        ]
+      : []),
   ];
 
   return (

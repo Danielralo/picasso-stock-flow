@@ -79,14 +79,14 @@ function filtrarInsumos(busqueda: string, categoria: string): Insumo[] {
 
 /* ---------------- Dashboard ---------------- */
 
-export function Dashboard() {
+export function Dashboard({ nombre = "Hector Ramos", rol = "Administrador" }: { nombre?: string; rol?: string }) {
   const alertas = INSUMOS.filter((i) => estadoStock(i) !== "DISPONIBLE");
 
   return (
     <>
       <div className="mb-6 rounded-2xl bg-primary px-7 py-8 text-primary-foreground shadow-card">
-        <p className="text-sm font-medium text-sand">Bienvenido de nuevo</p>
-        <h2 className="mt-1 text-3xl font-bold tracking-tight">Hector Ramos</h2>
+        <p className="text-sm font-medium text-sand">Bienvenido de nuevo · {rol}</p>
+        <h2 className="mt-1 text-3xl font-bold tracking-tight">{nombre}</h2>
         <p className="mt-2 max-w-xl text-sm text-primary-foreground/70">
           Resumen del inventario del taller. Revisa las alertas de stock antes de iniciar las órdenes del día.
         </p>
