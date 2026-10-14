@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { FileText, Home, LogOut, Package, ShoppingCart, Truck, Users } from "lucide-react";
-import { Login } from "@/components/picasso/Login";
+import { Login, type Sesion } from "@/components/picasso/Login";
 import { Dashboard, Entregar, Reabastecer, Reportes, Usuarios } from "@/components/picasso/views";
 import { cn } from "@/lib/utils";
 
@@ -140,11 +140,11 @@ function App() {
 
         <main className="flex-1 px-6 py-8">
           <div className="mx-auto max-w-6xl">
-            {vista === "inicio" && <Dashboard />}
+            {vista === "inicio" && <Dashboard nombre={sesion.nombre} rol={esAdmin ? "Administrador (Dueño)" : "Encargado"} />}
             {vista === "reabastecer" && <Reabastecer />}
             {vista === "entregar" && <Entregar />}
-            {vista === "usuarios" && <Usuarios />}
-            {vista === "reportes" && <Reportes />}
+            {esAdmin && vista === "usuarios" && <Usuarios />}
+            {esAdmin && vista === "reportes" && <Reportes />}
           </div>
         </main>
       </div>

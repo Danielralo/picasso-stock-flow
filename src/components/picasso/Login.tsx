@@ -75,7 +75,7 @@ export function Login({ onLogin }: { onLogin: (s: Sesion) => void }) {
         </form>
 
         <p className="mt-6 text-center text-xs text-muted-foreground">
-          Prototipo de demostración · acceso simulado
+          Prototipo de demostración · Admin: hramos / picasso · Encargado: lmarquez / encargado
         </p>
       </div>
 
