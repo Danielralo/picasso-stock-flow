@@ -5,9 +5,16 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import logo from "@/assets/logo.png";
 import { Pill } from "./ui-bits";
 
-export function Login({ onLogin }: { onLogin: () => void }) {
-  const [usuario, setUsuario] = useState("hramos");
-  const [password, setPassword] = useState("picasso");
+export type Sesion = { nombre: string; usuario: string; rol: "Administrador" | "Encargado" };
+
+const CUENTAS: Record<string, { password: string } & Sesion> = {
+  hramos: { password: "picasso", nombre: "Hector Ramos", usuario: "hramos", rol: "Administrador" },
+  lmarquez: { password: "encargado", nombre: "Lucía Márquez", usuario: "lmarquez", rol: "Encargado" },
+};
+
+export function Login({ onLogin }: { onLogin: (s: Sesion) => void }) {
+  const [usuario, setUsuario] = useState("");
+  const [password, setPassword] = useState("");
   const [recuperar, setRecuperar] = useState(false);
   const [cuenta, setCuenta] = useState("");
 
@@ -26,9 +33,15 @@ export function Login({ onLogin }: { onLogin: () => void }) {
           className="mt-8 space-y-4"
           onSubmit={(e) => {
             e.preventDefault();
-            onLogin();
+            const c = CUENTAS[usuario.trim().toLowerCase()];
+            if (!c || c.password !== password) {
+              toast.error("Usuario o contraseña incorrectos");
+              return;
+            }
+            onLogin({ nombre: c.nombre, usuario: c.usuario, rol: c.rol });
           }}
         >
+
           <div className="relative">
             <User className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <input className={input} value={usuario} onChange={(e) => setUsuario(e.target.value)} placeholder="Usuario" aria-label="Usuario" />
@@ -62,7 +75,7 @@ export function Login({ onLogin }: { onLogin: () => void }) {
         </form>
 
         <p className="mt-6 text-center text-xs text-muted-foreground">
-          Prototipo de demostración · acceso simulado
+          Prototipo de demostración · Admin: hramos / picasso · Encargado: lmarquez / encargado
         </p>
       </div>
 
