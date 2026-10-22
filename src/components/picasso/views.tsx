@@ -346,18 +346,29 @@ export function Entregar() {
           <div className="border-t border-border/70 px-5 py-4">
             <BuscadorInsumos
               busqueda={busqueda}
-              setBusqueda={setBusqueda}
+              setBusqueda={(v) => {
+                setBusqueda(v);
+                setPagina(1);
+              }}
               categoria={categoria}
-              setCategoria={setCategoria}
+              setCategoria={(v) => {
+                setCategoria(v);
+                setPagina(1);
+              }}
             />
-            {catalogo.length === 0 ? (
+            {categoria === "" ? (
+              <EstadoVacio />
+            ) : catalogo.length === 0 ? (
               <p className="py-8 text-center text-sm text-muted-foreground">
                 No se encontraron insumos con ese criterio.
               </p>
             ) : (
+              <>
               <ul className="-mx-2">
-                {catalogo.map((i) => (
-                  <li key={i.id} className="flex items-center gap-4 rounded-xl px-2 py-3 transition-colors hover:bg-secondary/70">
+                {visibles.map((i) => {
+                  const agotado = i.existencia === 0;
+                  return (
+                  <li key={i.id} className={agotado ? "flex items-center gap-4 rounded-xl px-2 py-3 opacity-50" : "flex items-center gap-4 rounded-xl px-2 py-3 transition-colors hover:bg-secondary/70"}>
                     <img src={i.imagen} alt="" loading="lazy" width={816} height={816} className="h-12 w-12 rounded-lg bg-secondary object-cover" />
                     <div className="min-w-0 flex-1">
                       <p className="font-mono text-base font-bold tracking-wide text-foreground">{i.codigo}</p>
@@ -366,16 +377,32 @@ export function Entregar() {
                         {i.categoria} · Disponible: {i.existencia} {i.unidad}
                       </p>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => add(i, 1)}
-                      className="inline-flex items-center gap-1.5 rounded-full bg-sand px-4 py-2 text-xs font-semibold text-sand-foreground transition-colors hover:bg-sand/80"
-                    >
-                      <Plus className="h-3.5 w-3.5" /> Añadir
-                    </button>
+                    {agotado ? (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="inline-flex cursor-not-allowed items-center gap-1.5 rounded-full bg-sand px-4 py-2 text-xs font-semibold text-sand-foreground opacity-60">
+                              <Plus className="h-3.5 w-3.5" /> Añadir
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent>No se puede entregar: Sin existencia</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => add(i, 1)}
+                        className="inline-flex items-center gap-1.5 rounded-full bg-sand px-4 py-2 text-xs font-semibold text-sand-foreground transition-colors hover:bg-sand/80"
+                      >
+                        <Plus className="h-3.5 w-3.5" /> Añadir
+                      </button>
+                    )}
                   </li>
-                ))}
+                  );
+                })}
               </ul>
+              <Paginacion pagina={pagina} totalPaginas={totalPaginas} onChange={setPagina} />
+              </>
             )}
           </div>
         </Card>
