@@ -274,6 +274,10 @@ export function Reabastecer() {
           </Card>
             ))}
         </div>
+        <div className="pb-28">
+          <Paginacion pagina={pagina} totalPaginas={totalPaginas} onChange={setPagina} />
+        </div>
+        </>
       )}
 
       <div className="fixed inset-x-0 bottom-0 z-20 border-t border-border/70 bg-card/95 px-6 py-4 backdrop-blur lg:left-72">
