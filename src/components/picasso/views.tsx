@@ -3,11 +3,15 @@ import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   Ban,
+  BellRing,
   Car,
+  ChevronLeft,
+  ChevronRight,
   Download,
   FileSpreadsheet,
   NotebookPen,
   PackagePlus,
+  PackageSearch,
   Plus,
   RotateCcw,
   Search,
@@ -16,6 +20,7 @@ import {
   UserRound,
   UserPlus,
 } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { BITACORA, CATEGORIAS, INSUMOS, ROLES, USUARIOS, type Usuario, estadoStock, type Insumo } from "@/lib/picasso-data";
 import { Badge, Card, CardHeader, PageTitle, Pill, Stepper, Td, Th } from "./ui-bits";
 
@@ -69,6 +74,7 @@ function BuscadorInsumos({
 }
 
 function filtrarInsumos(busqueda: string, categoria: string): Insumo[] {
+  if (categoria === "") return [];
   const q = busqueda.trim().toLowerCase();
   return INSUMOS.filter(
     (i) =>
@@ -77,11 +83,58 @@ function filtrarInsumos(busqueda: string, categoria: string): Insumo[] {
   );
 }
 
+const POR_PAGINA = 10;
+
+function EstadoVacio() {
+  return (
+    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card px-6 py-16 text-center">
+      <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary text-muted-foreground">
+        <PackageSearch className="h-7 w-7" />
+      </span>
+      <p className="mt-4 text-sm font-medium text-foreground">Selecciona una categoría para ver los insumos</p>
+      <p className="mt-1 text-xs text-muted-foreground">Usa los filtros de arriba para cargar el inventario.</p>
+    </div>
+  );
+}
+
+function Paginacion({ pagina, totalPaginas, onChange }: { pagina: number; totalPaginas: number; onChange: (p: number) => void }) {
+  if (totalPaginas <= 1) return null;
+  const btn =
+    "inline-flex h-9 min-w-9 items-center justify-center rounded-lg border border-border bg-card px-2 text-sm font-semibold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground disabled:opacity-40";
+  return (
+    <nav className="mt-5 flex items-center justify-center gap-2" aria-label="Paginación de insumos">
+      <button type="button" className={btn} onClick={() => onChange(pagina - 1)} disabled={pagina <= 1} aria-label="Página anterior">
+        <ChevronLeft className="h-4 w-4" />
+      </button>
+      {Array.from({ length: totalPaginas }, (_, idx) => idx + 1).map((p) => (
+        <button
+          key={p}
+          type="button"
+          onClick={() => onChange(p)}
+          aria-current={p === pagina ? "page" : undefined}
+          className={p === pagina ? "inline-flex h-9 min-w-9 items-center justify-center rounded-lg bg-primary px-2 text-sm font-semibold text-primary-foreground" : btn}
+        >
+          {p}
+        </button>
+      ))}
+      <button type="button" className={btn} onClick={() => onChange(pagina + 1)} disabled={pagina >= totalPaginas} aria-label="Página siguiente">
+        <ChevronRight className="h-4 w-4" />
+      </button>
+    </nav>
+  );
+}
+
+function usePagina<T>(items: T[]): { pagina: number; setPagina: (p: number) => void; visibles: T[]; totalPaginas: number } {
+  const [pagina, setPagina] = useState(1);
+  const totalPaginas = Math.max(1, Math.ceil(items.length / POR_PAGINA));
+  const actual = Math.min(pagina, totalPaginas);
+  const visibles = items.slice((actual - 1) * POR_PAGINA, actual * POR_PAGINA);
+  return { pagina: actual, setPagina, visibles, totalPaginas };
+}
+
 /* ---------------- Dashboard ---------------- */
 
-export function Dashboard({ nombre = "Hector Ramos", rol = "Administrador" }: { nombre?: string; rol?: string }) {
-  const alertas = INSUMOS.filter((i) => estadoStock(i) !== "DISPONIBLE");
-
+export function Dashboard({ nombre = "Hector Ramos", rol = "Administrador", onVerAlertas }: { nombre?: string; rol?: string; onVerAlertas: () => void }) {
   return (
     <>
       <div className="mb-6 rounded-2xl bg-primary px-7 py-8 text-primary-foreground shadow-card">
@@ -105,13 +158,31 @@ export function Dashboard({ nombre = "Hector Ramos", rol = "Administrador" }: { 
         ))}
       </div>
 
+      <div className="flex justify-center sm:justify-start">
+        <Pill variant="primary" onClick={onVerAlertas}>
+          <BellRing className="h-4 w-4" /> Ver todas las alertas
+        </Pill>
+      </div>
+    </>
+  );
+}
+
+/* ---------------- Alertas de stock ---------------- */
+
+export function Alertas() {
+  const alertas = INSUMOS.filter((i) => estadoStock(i) !== "DISPONIBLE");
+
+  return (
+    <>
+      <PageTitle title="Alertas de stock" subtitle="Insumos que requieren reabastecimiento urgente." />
       <Card>
-        <CardHeader title="Alertas de stock" subtitle="Insumos que requieren reabastecimiento" />
+        <CardHeader title="Insumos bajos o agotados" subtitle={`${alertas.length} insumo(s) por debajo de su nivel esperado`} />
         <div className="overflow-x-auto">
           <table className="w-full min-w-[620px] border-collapse">
             <thead className="bg-primary">
               <tr>
                 <Th>Insumo</Th>
+                <Th>Categoría</Th>
                 <Th>Existencia</Th>
                 <Th>Estado</Th>
               </tr>
@@ -123,6 +194,7 @@ export function Dashboard({ nombre = "Hector Ramos", rol = "Administrador" }: { 
                     <p className="font-mono text-sm font-bold tracking-wide text-foreground">{i.codigo}</p>
                     <p className="text-xs text-muted-foreground">{i.nombre}</p>
                   </Td>
+                  <Td className="text-muted-foreground">{i.categoria}</Td>
                   <Td className="tabular-nums">
                     {i.existencia} {i.unidad}
                   </Td>
@@ -144,8 +216,9 @@ export function Dashboard({ nombre = "Hector Ramos", rol = "Administrador" }: { 
 export function Reabastecer() {
   const [cantidades, setCantidades] = useState<Record<string, number>>({});
   const [busqueda, setBusqueda] = useState("");
-  const [categoria, setCategoria] = useState("Todas");
+  const [categoria, setCategoria] = useState("");
   const filtrados = filtrarInsumos(busqueda, categoria);
+  const { pagina, setPagina, visibles, totalPaginas } = usePagina(filtrados);
   const total = Object.values(cantidades).reduce((a, b) => a + b, 0);
 
   return (
@@ -154,18 +227,27 @@ export function Reabastecer() {
 
       <BuscadorInsumos
         busqueda={busqueda}
-        setBusqueda={setBusqueda}
+        setBusqueda={(v) => {
+          setBusqueda(v);
+          setPagina(1);
+        }}
         categoria={categoria}
-        setCategoria={setCategoria}
+        setCategoria={(v) => {
+          setCategoria(v);
+          setPagina(1);
+        }}
       />
 
-      {filtrados.length === 0 ? (
+      {categoria === "" ? (
+        <EstadoVacio />
+      ) : filtrados.length === 0 ? (
         <p className="rounded-2xl border border-border/70 bg-card px-6 py-10 text-center text-sm text-muted-foreground">
           No se encontraron insumos con ese criterio.
         </p>
       ) : (
+        <>
         <div className="grid gap-4 pb-28 sm:grid-cols-2 xl:grid-cols-3">
-          {filtrados.map((i) => (
+          {visibles.map((i) => (
           <Card key={i.id} className="overflow-hidden transition-shadow hover:shadow-lg">
             <img src={i.imagen} alt={i.nombre} loading="lazy" width={816} height={816} className="h-40 w-full bg-secondary object-cover" />
             <div className="px-5 py-4">
@@ -192,6 +274,10 @@ export function Reabastecer() {
           </Card>
             ))}
         </div>
+        <div className="pb-28">
+          <Paginacion pagina={pagina} totalPaginas={totalPaginas} onChange={setPagina} />
+        </div>
+        </>
       )}
 
       <div className="fixed inset-x-0 bottom-0 z-20 border-t border-border/70 bg-card/95 px-6 py-4 backdrop-blur lg:left-72">
@@ -221,14 +307,17 @@ export function Entregar() {
   const [vehiculo, setVehiculo] = useState("");
   const [notas, setNotas] = useState("");
   const [busqueda, setBusqueda] = useState("");
-  const [categoria, setCategoria] = useState("Todas");
+  const [categoria, setCategoria] = useState("");
   const catalogo = filtrarInsumos(busqueda, categoria);
+  const { pagina, setPagina, visibles, totalPaginas } = usePagina(catalogo);
   const items = useMemo(
     () => INSUMOS.filter((i) => (carrito[i.id] ?? 0) > 0).map((i) => ({ insumo: i, cant: carrito[i.id]! })),
     [carrito],
   );
-  const add = (i: Insumo, delta: number) =>
+  const add = (i: Insumo, delta: number) => {
+    if (i.existencia === 0) return;
     setCarrito((prev) => ({ ...prev, [i.id]: Math.round(Math.max(0, (prev[i.id] ?? 0) + delta) * 100) / 100 }));
+  };
   const [intentado, setIntentado] = useState(false);
   const faltaTrabajador = trabajador.trim() === "";
   const faltaVehiculo = vehiculo.trim() === "";
@@ -257,18 +346,29 @@ export function Entregar() {
           <div className="border-t border-border/70 px-5 py-4">
             <BuscadorInsumos
               busqueda={busqueda}
-              setBusqueda={setBusqueda}
+              setBusqueda={(v) => {
+                setBusqueda(v);
+                setPagina(1);
+              }}
               categoria={categoria}
-              setCategoria={setCategoria}
+              setCategoria={(v) => {
+                setCategoria(v);
+                setPagina(1);
+              }}
             />
-            {catalogo.length === 0 ? (
+            {categoria === "" ? (
+              <EstadoVacio />
+            ) : catalogo.length === 0 ? (
               <p className="py-8 text-center text-sm text-muted-foreground">
                 No se encontraron insumos con ese criterio.
               </p>
             ) : (
+              <>
               <ul className="-mx-2">
-                {catalogo.map((i) => (
-                  <li key={i.id} className="flex items-center gap-4 rounded-xl px-2 py-3 transition-colors hover:bg-secondary/70">
+                {visibles.map((i) => {
+                  const agotado = i.existencia === 0;
+                  return (
+                  <li key={i.id} className={agotado ? "flex items-center gap-4 rounded-xl px-2 py-3 opacity-50" : "flex items-center gap-4 rounded-xl px-2 py-3 transition-colors hover:bg-secondary/70"}>
                     <img src={i.imagen} alt="" loading="lazy" width={816} height={816} className="h-12 w-12 rounded-lg bg-secondary object-cover" />
                     <div className="min-w-0 flex-1">
                       <p className="font-mono text-base font-bold tracking-wide text-foreground">{i.codigo}</p>
@@ -277,16 +377,32 @@ export function Entregar() {
                         {i.categoria} · Disponible: {i.existencia} {i.unidad}
                       </p>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => add(i, 1)}
-                      className="inline-flex items-center gap-1.5 rounded-full bg-sand px-4 py-2 text-xs font-semibold text-sand-foreground transition-colors hover:bg-sand/80"
-                    >
-                      <Plus className="h-3.5 w-3.5" /> Añadir
-                    </button>
+                    {agotado ? (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="inline-flex cursor-not-allowed items-center gap-1.5 rounded-full bg-sand px-4 py-2 text-xs font-semibold text-sand-foreground opacity-60">
+                              <Plus className="h-3.5 w-3.5" /> Añadir
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent>No se puede entregar: Sin existencia</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => add(i, 1)}
+                        className="inline-flex items-center gap-1.5 rounded-full bg-sand px-4 py-2 text-xs font-semibold text-sand-foreground transition-colors hover:bg-sand/80"
+                      >
+                        <Plus className="h-3.5 w-3.5" /> Añadir
+                      </button>
+                    )}
                   </li>
-                ))}
+                  );
+                })}
               </ul>
+              <Paginacion pagina={pagina} totalPaginas={totalPaginas} onChange={setPagina} />
+              </>
             )}
           </div>
         </Card>

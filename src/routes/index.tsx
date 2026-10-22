@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { FileText, Home, LogOut, Package, ShoppingCart, Truck, Users } from "lucide-react";
+import { BellRing, FileText, Home, LogOut, Package, ShoppingCart, Truck, Users } from "lucide-react";
 import { Login, type Sesion } from "@/components/picasso/Login";
-import { Dashboard, Entregar, Reabastecer, Reportes, Usuarios } from "@/components/picasso/views";
+import { Alertas, Dashboard, Entregar, Reabastecer, Reportes, Usuarios } from "@/components/picasso/views";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
@@ -25,10 +25,16 @@ export const Route = createFileRoute("/")({
 });
 
 type Seccion = "inicio" | "insumos" | "usuarios" | "reportes";
-type Vista = "inicio" | "reabastecer" | "entregar" | "usuarios" | "reportes";
+type Vista = "inicio" | "alertas" | "reabastecer" | "entregar" | "usuarios" | "reportes";
 
 const SIDEBAR: Record<Seccion, { titulo: string; items: { id: Vista; label: string; icon: typeof Home }[] }> = {
-  inicio: { titulo: "Inicio", items: [{ id: "inicio", label: "Panel general", icon: Home }] },
+  inicio: {
+    titulo: "Inicio",
+    items: [
+      { id: "inicio", label: "Panel general", icon: Home },
+      { id: "alertas", label: "Alertas de stock", icon: BellRing },
+    ],
+  },
   insumos: {
     titulo: "Insumos",
     items: [
@@ -140,7 +146,8 @@ function App() {
 
         <main className="flex-1 px-6 py-8">
           <div className="mx-auto max-w-6xl">
-            {vista === "inicio" && <Dashboard nombre={sesion.nombre} rol={esAdmin ? "Administrador (Dueño)" : "Encargado"} />}
+            {vista === "inicio" && <Dashboard nombre={sesion.nombre} rol={esAdmin ? "Administrador (Dueño)" : "Encargado"} onVerAlertas={() => setVista("alertas")} />}
+            {vista === "alertas" && <Alertas />}
             {vista === "reabastecer" && <Reabastecer />}
             {vista === "entregar" && <Entregar />}
             {esAdmin && vista === "usuarios" && <Usuarios />}
