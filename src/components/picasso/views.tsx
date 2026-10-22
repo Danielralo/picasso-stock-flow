@@ -3,11 +3,15 @@ import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   Ban,
+  BellRing,
   Car,
+  ChevronLeft,
+  ChevronRight,
   Download,
   FileSpreadsheet,
   NotebookPen,
   PackagePlus,
+  PackageSearch,
   Plus,
   RotateCcw,
   Search,
@@ -16,6 +20,7 @@ import {
   UserRound,
   UserPlus,
 } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { BITACORA, CATEGORIAS, INSUMOS, ROLES, USUARIOS, type Usuario, estadoStock, type Insumo } from "@/lib/picasso-data";
 import { Badge, Card, CardHeader, PageTitle, Pill, Stepper, Td, Th } from "./ui-bits";
 
