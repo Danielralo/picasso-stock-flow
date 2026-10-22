@@ -134,9 +134,7 @@ function usePagina<T>(items: T[]): { pagina: number; setPagina: (p: number) => v
 
 /* ---------------- Dashboard ---------------- */
 
-export function Dashboard({ nombre = "Hector Ramos", rol = "Administrador" }: { nombre?: string; rol?: string }) {
-  const alertas = INSUMOS.filter((i) => estadoStock(i) !== "DISPONIBLE");
-
+export function Dashboard({ nombre = "Hector Ramos", rol = "Administrador", onVerAlertas }: { nombre?: string; rol?: string; onVerAlertas: () => void }) {
   return (
     <>
       <div className="mb-6 rounded-2xl bg-primary px-7 py-8 text-primary-foreground shadow-card">
@@ -160,13 +158,31 @@ export function Dashboard({ nombre = "Hector Ramos", rol = "Administrador" }: { 
         ))}
       </div>
 
+      <div className="flex justify-center sm:justify-start">
+        <Pill variant="primary" onClick={onVerAlertas}>
+          <BellRing className="h-4 w-4" /> Ver todas las alertas
+        </Pill>
+      </div>
+    </>
+  );
+}
+
+/* ---------------- Alertas de stock ---------------- */
+
+export function Alertas() {
+  const alertas = INSUMOS.filter((i) => estadoStock(i) !== "DISPONIBLE");
+
+  return (
+    <>
+      <PageTitle title="Alertas de stock" subtitle="Insumos que requieren reabastecimiento urgente." />
       <Card>
-        <CardHeader title="Alertas de stock" subtitle="Insumos que requieren reabastecimiento" />
+        <CardHeader title="Insumos bajos o agotados" subtitle={`${alertas.length} insumo(s) por debajo de su nivel esperado`} />
         <div className="overflow-x-auto">
           <table className="w-full min-w-[620px] border-collapse">
             <thead className="bg-primary">
               <tr>
                 <Th>Insumo</Th>
+                <Th>Categoría</Th>
                 <Th>Existencia</Th>
                 <Th>Estado</Th>
               </tr>
@@ -178,6 +194,7 @@ export function Dashboard({ nombre = "Hector Ramos", rol = "Administrador" }: { 
                     <p className="font-mono text-sm font-bold tracking-wide text-foreground">{i.codigo}</p>
                     <p className="text-xs text-muted-foreground">{i.nombre}</p>
                   </Td>
+                  <Td className="text-muted-foreground">{i.categoria}</Td>
                   <Td className="tabular-nums">
                     {i.existencia} {i.unidad}
                   </Td>
