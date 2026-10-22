@@ -216,8 +216,9 @@ export function Alertas() {
 export function Reabastecer() {
   const [cantidades, setCantidades] = useState<Record<string, number>>({});
   const [busqueda, setBusqueda] = useState("");
-  const [categoria, setCategoria] = useState("Todas");
+  const [categoria, setCategoria] = useState("");
   const filtrados = filtrarInsumos(busqueda, categoria);
+  const { pagina, setPagina, visibles, totalPaginas } = usePagina(filtrados);
   const total = Object.values(cantidades).reduce((a, b) => a + b, 0);
 
   return (
@@ -226,18 +227,27 @@ export function Reabastecer() {
 
       <BuscadorInsumos
         busqueda={busqueda}
-        setBusqueda={setBusqueda}
+        setBusqueda={(v) => {
+          setBusqueda(v);
+          setPagina(1);
+        }}
         categoria={categoria}
-        setCategoria={setCategoria}
+        setCategoria={(v) => {
+          setCategoria(v);
+          setPagina(1);
+        }}
       />
 
-      {filtrados.length === 0 ? (
+      {categoria === "" ? (
+        <EstadoVacio />
+      ) : filtrados.length === 0 ? (
         <p className="rounded-2xl border border-border/70 bg-card px-6 py-10 text-center text-sm text-muted-foreground">
           No se encontraron insumos con ese criterio.
         </p>
       ) : (
+        <>
         <div className="grid gap-4 pb-28 sm:grid-cols-2 xl:grid-cols-3">
-          {filtrados.map((i) => (
+          {visibles.map((i) => (
           <Card key={i.id} className="overflow-hidden transition-shadow hover:shadow-lg">
             <img src={i.imagen} alt={i.nombre} loading="lazy" width={816} height={816} className="h-40 w-full bg-secondary object-cover" />
             <div className="px-5 py-4">
