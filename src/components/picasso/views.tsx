@@ -74,12 +74,62 @@ function BuscadorInsumos({
 }
 
 function filtrarInsumos(busqueda: string, categoria: string): Insumo[] {
+  if (categoria === "") return [];
   const q = busqueda.trim().toLowerCase();
   return INSUMOS.filter(
     (i) =>
       (i.nombre.toLowerCase().includes(q) || i.codigo.toLowerCase().includes(q)) &&
       (categoria === "Todas" || i.categoria === categoria),
   );
+}
+
+const POR_PAGINA = 10;
+
+function EstadoVacio() {
+  return (
+    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card px-6 py-16 text-center">
+      <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary text-muted-foreground">
+        <PackageSearch className="h-7 w-7" />
+      </span>
+      <p className="mt-4 text-sm font-medium text-foreground">Selecciona una categoría para ver los insumos</p>
+      <p className="mt-1 text-xs text-muted-foreground">Usa los filtros de arriba para cargar el inventario.</p>
+    </div>
+  );
+}
+
+function Paginacion({ pagina, totalPaginas, onChange }: { pagina: number; totalPaginas: number; onChange: (p: number) => void }) {
+  if (totalPaginas <= 1) return null;
+  const btn =
+    "inline-flex h-9 min-w-9 items-center justify-center rounded-lg border border-border bg-card px-2 text-sm font-semibold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground disabled:opacity-40";
+  return (
+    <nav className="mt-5 flex items-center justify-center gap-2" aria-label="Paginación de insumos">
+      <button type="button" className={btn} onClick={() => onChange(pagina - 1)} disabled={pagina <= 1} aria-label="Página anterior">
+        <ChevronLeft className="h-4 w-4" />
+      </button>
+      {Array.from({ length: totalPaginas }, (_, idx) => idx + 1).map((p) => (
+        <button
+          key={p}
+          type="button"
+          onClick={() => onChange(p)}
+          aria-current={p === pagina ? "page" : undefined}
+          className={p === pagina ? "inline-flex h-9 min-w-9 items-center justify-center rounded-lg bg-primary px-2 text-sm font-semibold text-primary-foreground" : btn}
+        >
+          {p}
+        </button>
+      ))}
+      <button type="button" className={btn} onClick={() => onChange(pagina + 1)} disabled={pagina >= totalPaginas} aria-label="Página siguiente">
+        <ChevronRight className="h-4 w-4" />
+      </button>
+    </nav>
+  );
+}
+
+function usePagina<T>(items: T[]): { pagina: number; setPagina: (p: number) => void; visibles: T[]; totalPaginas: number } {
+  const [pagina, setPagina] = useState(1);
+  const totalPaginas = Math.max(1, Math.ceil(items.length / POR_PAGINA));
+  const actual = Math.min(pagina, totalPaginas);
+  const visibles = items.slice((actual - 1) * POR_PAGINA, actual * POR_PAGINA);
+  return { pagina: actual, setPagina, visibles, totalPaginas };
 }
 
 /* ---------------- Dashboard ---------------- */
