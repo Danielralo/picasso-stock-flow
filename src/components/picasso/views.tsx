@@ -307,14 +307,17 @@ export function Entregar() {
   const [vehiculo, setVehiculo] = useState("");
   const [notas, setNotas] = useState("");
   const [busqueda, setBusqueda] = useState("");
-  const [categoria, setCategoria] = useState("Todas");
+  const [categoria, setCategoria] = useState("");
   const catalogo = filtrarInsumos(busqueda, categoria);
+  const { pagina, setPagina, visibles, totalPaginas } = usePagina(catalogo);
   const items = useMemo(
     () => INSUMOS.filter((i) => (carrito[i.id] ?? 0) > 0).map((i) => ({ insumo: i, cant: carrito[i.id]! })),
     [carrito],
   );
-  const add = (i: Insumo, delta: number) =>
+  const add = (i: Insumo, delta: number) => {
+    if (i.existencia === 0) return;
     setCarrito((prev) => ({ ...prev, [i.id]: Math.round(Math.max(0, (prev[i.id] ?? 0) + delta) * 100) / 100 }));
+  };
   const [intentado, setIntentado] = useState(false);
   const faltaTrabajador = trabajador.trim() === "";
   const faltaVehiculo = vehiculo.trim() === "";
