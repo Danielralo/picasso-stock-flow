@@ -21,7 +21,9 @@ import {
   UserPlus,
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { BITACORA, CATEGORIAS, INSUMOS, ROLES, USUARIOS, type Usuario, estadoStock, type Insumo } from "@/lib/picasso-data";
+import { BITACORA, CATEGORIAS, INSUMOS, ORDEN_CATEGORIAS, ROLES, USUARIOS, type Usuario, estadoStock, type Insumo } from "@/lib/picasso-data";
+import { construirPayloadTicket, enviarTicketReabastecimiento } from "@/lib/reabastecimiento-api";
+import { NuevoInsumoDialog } from "./NuevoInsumoDialog";
 import { Badge, Card, CardHeader, PageTitle, Pill, Stepper, Td, Th } from "./ui-bits";
 
 const rowHover = "border-t border-border/70 transition-colors hover:bg-secondary/70";
@@ -213,17 +215,54 @@ export function Alertas() {
 
 /* ---------------- Reabastecer ---------------- */
 
-export function Reabastecer() {
+export function Reabastecer({ usuario = "hramos" }: { usuario?: string }) {
   const [cantidades, setCantidades] = useState<Record<string, number>>({});
   const [busqueda, setBusqueda] = useState("");
   const [categoria, setCategoria] = useState("");
+  const [guardando, setGuardando] = useState(false);
+  const [, setVersion] = useState(0);
   const filtrados = filtrarInsumos(busqueda, categoria);
   const { pagina, setPagina, visibles, totalPaginas } = usePagina(filtrados);
   const total = Object.values(cantidades).reduce((a, b) => a + b, 0);
 
+  const guardar = async () => {
+    const detalles = construirPayloadTicket(cantidades); // [{ id_insumo, cantidad_agregada }]
+    if (detalles.length === 0) {
+      toast.error("Indica al menos una cantidad mayor a 0");
+      return;
+    }
+    setGuardando(true);
+    try {
+      const res = await enviarTicketReabastecimiento(usuario, detalles);
+      // El backend actualiza stock_actual; aquí reflejamos el cambio localmente.
+      for (const d of detalles) {
+        const ins = INSUMOS.find((i) => i.id === d.id_insumo);
+        if (ins) ins.existencia = Math.round((ins.existencia + d.cantidad_agregada) * 100) / 100;
+      }
+      toast.success(`Ticket #${res.id_ticket} registrado`, { description: `${detalles.length} insumo(s) reabastecido(s)` });
+      setCantidades({});
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "No se pudo registrar el ticket");
+    } finally {
+      setGuardando(false);
+    }
+  };
+
   return (
     <>
-      <PageTitle title="Reabastecer insumos" subtitle="Indica la cantidad que ingresa al almacén del taller." />
+      <PageTitle
+        title="Reabastecer insumos"
+        subtitle="Indica la cantidad que ingresa al almacén del taller."
+        action={
+          <NuevoInsumoDialog
+            onCreado={(i) => {
+              INSUMOS.push(i);
+              INSUMOS.sort((x, y) => ORDEN_CATEGORIAS.indexOf(x.categoria) - ORDEN_CATEGORIAS.indexOf(y.categoria));
+              setVersion((v) => v + 1);
+            }}
+          />
+        }
+      />
 
       <BuscadorInsumos
         busqueda={busqueda}
@@ -286,11 +325,11 @@ export function Reabastecer() {
             Total de piezas a ingresar: <span className="font-semibold tabular-nums text-foreground">{total}</span>
           </p>
           <div className="flex gap-3">
-            <Pill variant="ghost" onClick={() => setCantidades({})}>
+            <Pill variant="ghost" onClick={() => setCantidades({})} disabled={guardando}>
               Cancelar
             </Pill>
-            <Pill variant="primary" onClick={() => setCantidades({})}>
-              <PackagePlus className="h-4 w-4" /> Guardar
+            <Pill variant="primary" onClick={guardar} disabled={guardando}>
+              <PackagePlus className="h-4 w-4" /> {guardando ? "Guardando…" : "Guardar"}
             </Pill>
           </div>
         </div>
