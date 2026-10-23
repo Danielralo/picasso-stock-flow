@@ -148,7 +148,7 @@ function App() {
           <div className="mx-auto max-w-6xl">
             {vista === "inicio" && <Dashboard nombre={sesion.nombre} rol={esAdmin ? "Administrador (Dueño)" : "Encargado"} onVerAlertas={() => setVista("alertas")} />}
             {vista === "alertas" && <Alertas />}
-            {vista === "reabastecer" && <Reabastecer />}
+            {vista === "reabastecer" && <Reabastecer usuario={sesion.usuario} />}
             {vista === "entregar" && <Entregar />}
             {esAdmin && vista === "usuarios" && <Usuarios />}
             {esAdmin && vista === "reportes" && <Reportes />}
