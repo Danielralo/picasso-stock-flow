@@ -574,6 +574,17 @@ export function Usuarios() {
   const cambiarEstado = (id: string) =>
     setCuentas((prev) => prev.map((u) => (u.id === id ? { ...u, activo: !u.activo } : u)));
 
+  const [q, setQ] = useState("");
+  const [fRol, setFRol] = useState<"Todos" | Usuario["rol"]>("Todos");
+  const [fEstado, setFEstado] = useState<"Todos" | "Activo" | "Inactivo">("Todos");
+  const texto = q.trim().toLowerCase();
+  const filtradas = cuentas.filter(
+    (u) =>
+      (fRol === "Todos" || u.rol === fRol) &&
+      (fEstado === "Todos" || u.activo === (fEstado === "Activo")) &&
+      (!texto || u.nombre.toLowerCase().includes(texto) || u.usuario.toLowerCase().includes(texto)),
+  );
+
   return (
     <>
       <PageTitle
@@ -587,6 +598,30 @@ export function Usuarios() {
       />
       <Card>
         <CardHeader title="Cuentas registradas" subtitle="Usa el botón de opciones para dar de baja o reactivar una cuenta." />
+        <div className="flex flex-wrap items-center gap-3 px-6 pb-4">
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Buscar por nombre o usuario…"
+            className="min-w-[200px] flex-1 rounded-full border border-border bg-card px-4 py-2 text-sm outline-none focus:border-sand"
+          />
+          <div className="flex gap-1">
+            {(["Todos", "Administrador", "Encargado"] as const).map((r) => (
+              <button key={r} type="button" onClick={() => setFRol(r)}
+                className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${fRol === r ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground hover:text-foreground"}`}>
+                {r === "Administrador" ? "Dueño" : r}
+              </button>
+            ))}
+          </div>
+          <div className="flex gap-1">
+            {(["Todos", "Activo", "Inactivo"] as const).map((s) => (
+              <button key={s} type="button" onClick={() => setFEstado(s)}
+                className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${fEstado === s ? "bg-sand text-sand-foreground" : "bg-secondary text-muted-foreground hover:text-foreground"}`}>
+                {s}
+              </button>
+            ))}
+          </div>
+        </div>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[720px] border-collapse">
             <thead className="bg-primary">
@@ -599,7 +634,10 @@ export function Usuarios() {
               </tr>
             </thead>
             <tbody>
-              {cuentas.map((u) => (
+              {filtradas.length === 0 && (
+                <tr><td colSpan={5} className="px-6 py-8 text-center text-sm text-muted-foreground">Ninguna cuenta coincide con los filtros.</td></tr>
+              )}
+              {filtradas.map((u) => (
                 <tr key={u.id} className={rowHover}>
                   <Td className="font-medium">{u.nombre}</Td>
                   <Td className="text-muted-foreground">@{u.usuario}</Td>
