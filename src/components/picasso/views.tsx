@@ -85,8 +85,6 @@ function filtrarInsumos(busqueda: string, categoria: string): Insumo[] {
   );
 }
 
-const POR_PAGINA = 10;
-
 function EstadoVacio() {
   return (
     <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card px-6 py-16 text-center">
@@ -99,12 +97,11 @@ function EstadoVacio() {
   );
 }
 
-function Paginacion({ pagina, totalPaginas, onChange }: { pagina: number; totalPaginas: number; onChange: (p: number) => void }) {
-  if (totalPaginas <= 1) return null;
+function Paginacion({ pagina, totalPaginas, total, onChange }: { pagina: number; totalPaginas: number; total: number; onChange: (p: number) => void }) {
   const btn =
     "inline-flex h-9 min-w-9 items-center justify-center rounded-lg border border-border bg-card px-2 text-sm font-semibold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground disabled:opacity-40";
   return (
-    <nav className="mt-5 flex items-center justify-center gap-2" aria-label="Paginación de insumos">
+    <nav className="mt-5 flex flex-wrap items-center justify-center gap-2" aria-label="Paginación de insumos">
       <button type="button" className={btn} onClick={() => onChange(pagina - 1)} disabled={pagina <= 1} aria-label="Página anterior">
         <ChevronLeft className="h-4 w-4" />
       </button>
@@ -122,16 +119,11 @@ function Paginacion({ pagina, totalPaginas, onChange }: { pagina: number; totalP
       <button type="button" className={btn} onClick={() => onChange(pagina + 1)} disabled={pagina >= totalPaginas} aria-label="Página siguiente">
         <ChevronRight className="h-4 w-4" />
       </button>
+      <span className="ml-2 text-xs font-medium text-muted-foreground">
+        Página {pagina} de {totalPaginas} · {total} insumo{total === 1 ? "" : "s"}
+      </span>
     </nav>
   );
-}
-
-function usePagina<T>(items: T[]): { pagina: number; setPagina: (p: number) => void; visibles: T[]; totalPaginas: number } {
-  const [pagina, setPagina] = useState(1);
-  const totalPaginas = Math.max(1, Math.ceil(items.length / POR_PAGINA));
-  const actual = Math.min(pagina, totalPaginas);
-  const visibles = items.slice((actual - 1) * POR_PAGINA, actual * POR_PAGINA);
-  return { pagina: actual, setPagina, visibles, totalPaginas };
 }
 
 /* ---------------- Dashboard ---------------- */
