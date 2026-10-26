@@ -23,6 +23,7 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { BITACORA, CATEGORIAS, INSUMOS, ORDEN_CATEGORIAS, ROLES, USUARIOS, type Usuario, estadoStock, type Insumo } from "@/lib/picasso-data";
 import { construirPayloadTicket, enviarTicketReabastecimiento } from "@/lib/reabastecimiento-api";
+import { usePagina } from "@/lib/paginacion";
 import { NuevoInsumoDialog } from "./NuevoInsumoDialog";
 import { Badge, Card, CardHeader, PageTitle, Pill, Stepper, Td, Th } from "./ui-bits";
 
@@ -306,7 +307,7 @@ export function Reabastecer({ usuario = "hramos" }: { usuario?: string }) {
             ))}
         </div>
         <div className="pb-28">
-          <Paginacion pagina={pagina} totalPaginas={totalPaginas} onChange={setPagina} />
+          <Paginacion pagina={pagina} totalPaginas={totalPaginas} total={filtrados.length} onChange={setPagina} />
         </div>
         </>
       )}
@@ -432,7 +433,7 @@ export function Entregar() {
                   );
                 })}
               </ul>
-              <Paginacion pagina={pagina} totalPaginas={totalPaginas} onChange={setPagina} />
+              <Paginacion pagina={pagina} totalPaginas={totalPaginas} total={catalogo.length} onChange={setPagina} />
               </>
             )}
           </div>
