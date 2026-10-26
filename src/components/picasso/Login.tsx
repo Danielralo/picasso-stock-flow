@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { KeyRound, LogIn, Lock, User } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -17,6 +17,10 @@ export function Login({ onLogin }: { onLogin: (s: Sesion) => void }) {
   const [password, setPassword] = useState("");
   const [recuperar, setRecuperar] = useState(false);
   const [cuenta, setCuenta] = useState("");
+  // Desactiva el botón hasta que React esté montado: evita que un clic (o Enter)
+  // antes de la hidratación recargue la página y borre los campos.
+  const [hidratado, setHidratado] = useState(false);
+  useEffect(() => setHidratado(true), []);
 
   const input =
     "w-full rounded-full border border-border bg-background py-3 pl-11 pr-4 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-sand focus:ring-2 focus:ring-sand/50";
