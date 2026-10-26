@@ -73,8 +73,9 @@ export function Login({ onLogin }: { onLogin: (s: Sesion) => void }) {
               ¿Olvidaste tu contraseña?
             </button>
           </div>
-          <Pill type="submit" variant="sand" className="w-full py-3">
-            <LogIn className="h-4 w-4" /> Iniciar sesión
+          <Pill type="submit" variant="sand" className="w-full py-3" disabled={!hidratado}>
+            {hidratado ? <LogIn className="h-4 w-4" /> : null}
+            {hidratado ? "Iniciar sesión" : "Cargando…"}
           </Pill>
         </form>
 
