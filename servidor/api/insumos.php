@@ -5,10 +5,10 @@
  *   GET                       → RF-02 Consulta de insumos (con su categoría, marca y estado, RF-05 y RF-06)
  *   POST   {datos}            → RF-01 Alta de insumos (empieza con existencia 0)
  *   PUT    {datos}            → RF-03 Edición de los datos de un insumo
+ *   DELETE ?idInsumo=CODIGO   → RF-04 Baja de insumos (solo si no tiene salidas)
  *
  * En el alta y en la edición la unidad debe corresponder a la categoría (excepción 4c) y, si la marca
  * no está en la lista, se puede mandar «marcaNueva» para registrarla en la tabla MARCA (excepción 3b).
- *   DELETE ?idInsumo=CODIGO   → RF-04 Baja de insumos (solo si no tiene salidas)
  */
 
 require_once __DIR__ . '/funciones.php';

@@ -81,7 +81,7 @@ function zip(archivos: { nombre: string; texto: string }[]): Blob {
 const esc = (t: string) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
 // Estilos (índices de cellXfs): 0 normal, 1 título, 2 subtítulo, 3 encabezado,
-// 4 texto, 5 número, 6 SIN EXISTENCIA, 7 POR ACABARSE, 8 total
+// 4 texto, 5 número, 6 rojo (SIN EXISTENCIA), 7 amarillo (POR ACABARSE), 8 total, 9 verde
 const ESTILOS = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
 <fonts count="5">
@@ -128,7 +128,7 @@ function celdaNumero(ref: string, n: number, estilo: number) {
 
 /** Columna de un reporte: título, ancho y si es número. */
 export type Columna = { titulo: string; ancho: number; numero?: boolean };
-/** Color de la celda resaltada de cada fila: rojo (6), amarillo (7) o ninguno. */
+/** Color de la celda resaltada de cada fila: rojo (6), amarillo (7), verde (9) o ninguno. */
 export type Resalte = "rojo" | "amarillo" | "verde" | null;
 
 export type Reporte = {
