@@ -1,0 +1,2 @@
+# El script SQL no se debe poder descargar desde el navegador.
+Require all denied

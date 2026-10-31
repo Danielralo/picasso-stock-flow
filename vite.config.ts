@@ -12,4 +12,11 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  vite: {
+    server: {
+      // Con `npm run dev`, las peticiones a /picasso/api se reenvían al Apache de XAMPP (puerto 80).
+      // Así se puede desarrollar con la base de datos real (ver .env.development).
+      proxy: { "/picasso/api": { target: "http://localhost", changeOrigin: true } },
+    },
+  },
 });

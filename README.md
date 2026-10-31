@@ -1,82 +1,78 @@
-# Picasso Inventory Hub
+# Sistema de Inventario · Picasso Autosport
 
-Actúa como un desarrollador Frontend experto en React, Tailwind CSS y Shadcn UI. Necesito crear un prototipo funcional para una aplicación web de inventario llamada "Picasso Autosport", diseñada para un taller de hojalatería y pintura automotriz. 
+Sistema web local para controlar el inventario del taller de hojalatería y pintura **Picasso Autosport**. Permite dar de alta, editar y dar de baja insumos, registrar entradas (Reabastecer) y salidas (Entregar), ver alertas de stock, exportar reportes a Excel, consultar la bitácora y administrar las cuentas de usuario.
 
-El sistema debe tener un diseño limpio, moderno y corporativo, utilizando las siguientes directrices de diseño y arquitectura:
+Proyecto de **Ingeniería de Software** · Instituto Tecnológico de León · Ingeniería en Sistemas Computacionales
+Docente: Saez de Nanclares Rodríguez Ruth
+Equipo: Cruz Garduño Isaac Emmanuel · Becerra Godínez Cristofer Haret · Ramos López Héctor Daniel
 
-1. SISTEMA DE DISEÑO Y UI:
+---
 
-- Paleta de colores principal: Fondo general gris muy claro o blanco (#F8F9FA). Barras de navegación, encabezados de tablas y botones primarios en negro o azul marino muy oscuro (#0F172A). Acentos y botones secundarios (como el botón de login o menús activos) en color arena/beige (#E5D3B3). Alertas en rojo suave/pastel para poco stock y verde para estados activos.
+## Probarlo en tu computadora
 
-- Tipografía: Sans-serif moderna (Inter o Roboto).
+Necesitas **Windows** y **XAMPP 8** (Apache + PHP 8 + MySQL). No necesitas Node.js.
 
-- Estilo de componentes: Tarjetas (cards) blancas con bordes muy sutiles y esquinas redondeadas (border-radius: 12px a 16px). Botones estilo píldora (totalmente redondeados) para acciones principales y botones cuadrados con esquinas suaves para controles de cantidad (+ y -).
+1. **Descarga el proyecto.** En GitHub presiona el botón verde **Code › Download ZIP** y descomprímelo. También puedes usar `git clone https://github.com/Danielralo/picasso-stock-flow.git`.
+2. **Instala XAMPP** desde https://www.apachefriends.org y deja la carpeta que propone (`C:\xampp`).
+3. **Haz doble clic en `instalar-en-xampp.bat`.** Copia el sistema a `C:\xampp\htdocs\picasso`.
+4. **Abre el XAMPP Control Panel** y presiona **Start** en **Apache** y en **MySQL**.
+5. **Entra a http://localhost/picasso**
 
-2. ARQUITECTURA DE NAVEGACIÓN Y LAYOUT:
+La primera vez, el sistema crea solo la base de datos `picasso_inventario` con sus 6 tablas y datos de ejemplo. No hay que importar nada en phpMyAdmin.
 
-- Pantalla de Login: Centrada, con un espacio para el logo negro de "Picasso Autosport" con detalles rojos. Inputs de usuario y contraseña redondeados, y un botón de "Iniciar sesión" en color arena.
+### Cuentas de prueba
 
-- Layout Principal (Post-login): 
+| Usuario | Contraseña | Rol |
+|---|---|---|
+| `hramos` | `picasso` | Administrador (dueño) |
+| `lmarquez` | `encargado` | Encargado de Almacén |
 
-  - Topbar (Barra superior): Debe contener 4 botones de acción principales para el Administrador: "Insumos", "Usuarios", "Reportes" y "Cerrar Sesión" (Logout).
+### Si algo no funciona
 
-  - Sidebar (Panel izquierdo): Dinámico. Cambiará sus opciones dependiendo de la sección seleccionada en la barra superior.
+| Qué pasa | Qué hacer |
+|---|---|
+| «No hay conexión con el servidor» | Apache o MySQL están apagados: enciéndelos en XAMPP. |
+| Apache no enciende | Otro programa usa el puerto 80. Ciérralo o cambia el puerto de Apache a 8080 y entra a http://localhost:8080/picasso |
+| «Access denied for user 'root'» | Tu MySQL tiene contraseña: escríbela en `C:\xampp\htdocs\picasso\api\config.php` (`DB_CLAVE`). |
+| Quiero empezar con datos limpios | En http://localhost/phpmyadmin elimina la base `picasso_inventario` y vuelve a abrir el sistema: se crea de nuevo. |
+| No llega el correo de «¿Olvidaste tu contraseña?» | El correo del Administrador de ejemplo es `hramos@example.com`. Cámbialo por el tuyo en **Usuarios › Editar** y configura una cuenta de Gmail en `C:\xampp\sendmail\sendmail.ini` (ver `MANUAL_TECNICO.md`, RNF-09). Sin correo configurado, la solicitud queda en **Usuarios** para que otro Administrador asigne la contraseña. |
 
-3. VISTAS Y PANTALLAS A DESARROLLAR:
+---
 
-A) Inicio (Dashboard):
+## Qué hay en cada carpeta
 
-- Mensaje de bienvenida destacado en la parte superior.
+| Carpeta o archivo | Qué es |
+|---|---|
+| `servidor/api/` | La API en PHP (backend): sesión, usuarios, insumos, entradas, salidas y reportes. |
+| `servidor/base-de-datos/` | `picasso_inventario.sql`: crea la base de datos, las 6 tablas en 3FN y los datos iniciales. |
+| `src/` | Código fuente de las pantallas (React + TypeScript + Tailwind CSS). |
+| `spa/` | Punto de entrada de la versión que se instala en XAMPP. |
+| `pantallas-compiladas/` | Las pantallas ya compiladas que se copian a XAMPP. Se generan con `npm run build:xampp`; no se editan a mano. |
+| `public/` | Icono de la página y `robots.txt`. |
+| `documentacion/` | ERS, Modelo de Diseño, modelo relacional, guía de estudio del código y el prompt original de Lovable. |
+| `instalar-en-xampp.bat` | Instala el sistema en XAMPP sin Node.js. |
+| `publicar-en-xampp.bat` | Vuelve a compilar las pantallas (requiere Node.js) y las instala en XAMPP. |
+| `MANUAL_TECNICO.md` | Cómo funciona cada parte y cómo resolver problemas. |
 
-- Tarjeta de "Alertas de Stock": Una tabla limpia que muestre los insumos (como thinner, lijas, barniz) que están "POR ACABARSE" o "SIN EXISTENCIA", utilizando insignias (badges) rojas.
+## Documentación
 
-B) Sección "Insumos" (Gestión de inventario):
+| Documento | Para qué |
+|---|---|
+| [`documentacion/Documento_de_Especificacion_de_Requisitos_Final.docx`](documentacion/Documento_de_Especificacion_de_Requisitos_Final.docx) | ERS según el estándar IEEE 830. |
+| [`documentacion/Modelo_de_Diseño_Final.docx`](documentacion/Modelo_de_Diseño_Final.docx) | Arquitectura, modelo entidad-relación, normalización y casos de uso con sus diagramas. |
+| [`documentacion/Modelo_Relacional_y_Normalizacion.xlsx`](documentacion/Modelo_Relacional_y_Normalizacion.xlsx) | Modelo relacional y normalización hasta 3FN. |
+| [`documentacion/Guia_de_estudio_del_codigo.docx`](documentacion/Guia_de_estudio_del_codigo.docx) | Explica cada carpeta, cada archivo y cada línea del código. |
+| [`MANUAL_TECNICO.md`](MANUAL_TECNICO.md) | Resumen técnico y solución de problemas. |
 
-- Al hacer clic en "Insumos" en el Topbar, el Sidebar izquierdo debe mostrar el título "Insumos" con 2 sub-opciones: "Reabastecer" y "Entregar".
+---
 
-- Vista "Reabastecer Insumos": Mostrar un título claro. Abajo, un grid o lista de tarjetas. Cada tarjeta debe mostrar: la imagen del insumo, el nombre, y controles con botones de "+" y "-" para indicar la cantidad a ingresar. Al final de la página, fijar dos botones: "Guardar" (primario) y "Cancelar" (secundario).
+## Para programar
 
-- Vista "Entregar" (Asignación): Una interfaz estilo "Carrito de compras" para añadir de forma rápida insumos solicitados por los trabajadores, con un botón para registrar el retiro.
+1. Instala **Node.js 20 o más nuevo** desde https://nodejs.org
+2. En la carpeta del proyecto ejecuta `npm install`.
+3. Con Apache y MySQL encendidos, ejecuta `npm run dev`. Las pantallas se recargan solas y usan la API de XAMPP en `/picasso/api` (ver `vite.config.ts` y `.env.development`).
+4. Para ver los cambios en `http://localhost/picasso`, haz doble clic en `publicar-en-xampp.bat`. Sube también a GitHub la carpeta `pantallas-compiladas/` para que los demás puedan probar sin Node.js.
 
-C) Sección "Usuarios":
+**Tecnologías:** React 19, TypeScript, Tailwind CSS 4 y componentes shadcn/ui en las pantallas; PHP 8 con PDO en la API; MySQL (MariaDB de XAMPP) en la base de datos.
 
-- Una tabla de "Cuentas Registradas" que muestre el Nombre, Usuario, Rol (ej. Administrador, Encargado) y Estado (con badge verde de "ACTIVO").
-
-- Incluir un botón primario oscuro "+ Crear Usuario" para darlos de alta en el punto de entrega.
-
-D) Sección "Reportes":
-
-- Una vista de "Bitácora de Actividades" (Audit Log) mostrando fecha, usuario, acción (ENTRADA, SALIDA, EDICIÓN), y detalle del movimiento.
-
-- Un botón en la parte superior derecha para "Exportar Reporte" (simulando exportación a Excel).
-
-4. INTERACTIVIDAD:
-
-- Añadir estados de "hover" sutiles en todos los botones y filas de las tablas.
-
-- Los botones de + y - en la pantalla de "Reabastecer" deben actualizar un contador numérico en tiempo real.
-
-- Usa íconos de la librería Lucide React (ej. carrito de compras, usuarios, archivo de texto, log out) para acompañar los textos de los botones y menús.
-
-Por favor, genera el código completo del prototipo asegurando que la navegación entre las vistas superiores y los menús laterales funcione correctamente mediante estados de React.
-
-This project was built with [Lovable](https://lovable.dev).
-
-## Build with Lovable
-
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/12b66ebf-b08d-4d2f-a408-8baffcd827e2).
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
-
-## Development
-
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
-
-```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
-npm run dev
-```
+**Lovable:** el primer prototipo de las pantallas se generó con [Lovable](https://lovable.dev) y este repositorio sigue conectado a ese proyecto: lo que se sube a `main` también aparece allá. El prompt original está en `documentacion/prompt-original-lovable.md`.

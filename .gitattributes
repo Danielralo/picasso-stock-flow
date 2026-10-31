@@ -1,0 +1,9 @@
+# Los archivos de texto se guardan con saltos de línea LF en el repositorio.
+* text=auto
+# Los .bat necesitan CRLF para que Windows los ejecute bien.
+*.bat text eol=crlf
+# Archivos binarios: no se tocan.
+*.png binary
+*.jpg binary
+*.docx binary
+*.xlsx binary

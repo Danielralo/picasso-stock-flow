@@ -3,72 +3,101 @@ import lijas from "@/assets/lijas.jpg";
 import barniz from "@/assets/barniz.jpg";
 import cinta from "@/assets/cinta.jpg";
 
-export type Categoria = "Lijas" | "Cintas" | "Pinturas" | "Solventes" | "Barnices";
+/*
+ * Tipos y reglas que usan las pantallas.
+ * Los datos ya no viven aquí: llegan de la base de datos MySQL a través de la API en PHP
+ * (ver src/lib/api.ts y la carpeta servidor/api).
+ */
+
+/* ---------------- CATEGORIA ---------------- */
+
+/** Orden que pidió el cliente: lijas y cintas primero, barniz al final (mismo orden que la API). */
+export const ORDEN_CATEGORIAS = ["Lijas", "Cintas", "Pinturas", "Solventes", "Consumibles", "Barnices"] as const;
+export type Categoria = string;
+export const CATEGORIAS = ["Todas", ...ORDEN_CATEGORIAS] as const;
+
+/** Imagen ilustrativa de cada categoría (la base de datos no guarda imágenes). */
+const IMAGEN_CATEGORIA: Record<string, string> = {
+  Lijas: lijas,
+  Cintas: cinta,
+  Pinturas: barniz,
+  Solventes: thinner,
+  Consumibles: cinta,
+  Barnices: barniz,
+};
+export function imagenDe(categoria: string) {
+  return IMAGEN_CATEGORIA[categoria] ?? barniz;
+}
+
+/* ---------------- INSUMO ---------------- */
+
+/** Valores del diccionario de datos del ERS para la unidad de medida. */
+export const UNIDADES_MEDIDA = ["Litros", "Galones", "Pliegos", "Piezas", "Rollos"] as const;
+export type Unidad = (typeof UNIDADES_MEDIDA)[number];
+
+export type EstadoAlerta = "DISPONIBLE" | "POR ACABARSE" | "SIN EXISTENCIA";
 
 export type Insumo = {
+  /** idInsumo: código del material del proveedor (por ejemplo, DC2000). */
   id: string;
   codigo: string;
   nombre: string;
+  descripcion: string;
+  idCategoria: number;
   categoria: Categoria;
+  idMarca: number;
+  marca: string;
   unidad: string;
   existencia: number;
   minimo: number;
+  estado: EstadoAlerta;
   imagen: string;
 };
 
-/** Orden operativo: Lijas y Cintas primero, Barnices al final. */
-export const ORDEN_CATEGORIAS: Categoria[] = ["Lijas", "Cintas", "Pinturas", "Solventes", "Barnices"];
-export const CATEGORIAS = ["Todas", ...ORDEN_CATEGORIAS] as const;
+/** RF-06: el estado lo calcula el servidor (estadoAlerta) después de cada alta, entrada, edición o salida. */
+export function estadoStock(i: Insumo): EstadoAlerta {
+  return i.estado;
+}
 
-const BASE: Insumo[] = [
-  { id: "lija-600", codigo: "LJ600", nombre: "Lija de agua grano P600", categoria: "Lijas", unidad: "Pliego", existencia: 0, minimo: 25, imagen: lijas },
-  { id: "lija-1200", codigo: "LJ1200", nombre: "Lija de agua grano P1200", categoria: "Lijas", unidad: "Pliego", existencia: 9, minimo: 20, imagen: lijas },
-  { id: "cinta-48", codigo: "CM2448", nombre: "Cinta masking automotriz 48 mm", categoria: "Cintas", unidad: "Rollo", existencia: 14, minimo: 6, imagen: cinta },
-  { id: "endurecedor", codigo: "EN4010", nombre: "Endurecedor rápido para pintura 2K", categoria: "Pinturas", unidad: "Litro", existencia: 18, minimo: 5, imagen: barniz },
-  { id: "thinner", codigo: "TH100", nombre: "Thinner estándar de limpieza", categoria: "Solventes", unidad: "Galón", existencia: 2, minimo: 8, imagen: thinner },
-  { id: "thinner-acr", codigo: "TA300", nombre: "Thinner acrílico de alta pureza", categoria: "Solventes", unidad: "Galón", existencia: 12, minimo: 6, imagen: thinner },
-  { id: "barniz", codigo: "DC2000", nombre: "Barniz 2K alto sólido transparente", categoria: "Barnices", unidad: "Litro", existencia: 4, minimo: 6, imagen: barniz },
-];
-
-export const INSUMOS: Insumo[] = [...BASE].sort(
-  (x, y) => ORDEN_CATEGORIAS.indexOf(x.categoria) - ORDEN_CATEGORIAS.indexOf(y.categoria),
-);
+/* ---------------- USUARIO ---------------- */
 
 export const ROLES = ["Administrador", "Encargado"] as const;
+export type Rol = (typeof ROLES)[number];
 
 export type Usuario = {
-  id: string;
+  id: number;
   nombre: string;
   usuario: string;
-  rol: "Administrador" | "Encargado";
+  email: string;
+  rol: Rol;
   activo: boolean;
 };
 
-export const USUARIOS: Usuario[] = [
-  { id: "1", nombre: "Hector Ramos", usuario: "hramos", rol: "Administrador", activo: true },
-  { id: "2", nombre: "Lucía Márquez", usuario: "lmarquez", rol: "Encargado", activo: true },
-  { id: "3", nombre: "Andrés Salgado", usuario: "asalgado", rol: "Encargado", activo: true },
-  { id: "4", nombre: "Diana Peña", usuario: "dpena", rol: "Encargado", activo: false },
-];
+export const USUARIO_VALIDO = /^[a-z0-9._]{3,20}$/;
+export const EMAIL_VALIDO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/* ---------------- BITACORA_ACTIVIDAD ---------------- */
+
+export type TipoAccion = "ALTA" | "BAJA" | "MODIFICACION" | "ENTRADA" | "SALIDA" | "LOGIN";
 
 export type Movimiento = {
-  id: string;
+  id: number;
   fecha: string;
   usuario: string;
-  accion: "ENTRADA" | "SALIDA" | "EDICIÓN";
+  accion: TipoAccion;
+  modulo: "Usuario" | "Insumo";
   detalle: string;
 };
 
-export const BITACORA: Movimiento[] = [
-  { id: "1", fecha: "30/09/2026 09:42", usuario: "hramos", accion: "ENTRADA", detalle: "Reabastecimiento: +12 Thinner acrílico" },
-  { id: "2", fecha: "30/09/2026 09:05", usuario: "lmarquez", accion: "SALIDA", detalle: "Entrega a J. Ortega: 6 Lija P600" },
-  { id: "3", fecha: "29/09/2026 18:20", usuario: "hramos", accion: "EDICIÓN", detalle: "Mínimo de Barniz 2K actualizado a 6 L" },
-  { id: "4", fecha: "29/09/2026 15:11", usuario: "lmarquez", accion: "SALIDA", detalle: "Entrega a D. Peña: 2 L Barniz 2K" },
-  { id: "5", fecha: "29/09/2026 11:30", usuario: "hramos", accion: "ENTRADA", detalle: "Reabastecimiento: +30 Lija P1200" },
-];
+/** dd/mm/aaaa hh:mm */
+export function formatoFecha(d: Date) {
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
 
-export function estadoStock(i: Insumo) {
-  if (i.existencia === 0) return "SIN EXISTENCIA" as const;
-  if (i.existencia < i.minimo) return "POR ACABARSE" as const;
-  return "DISPONIBLE" as const;
+/** Convierte un DATETIME de MySQL ("2026-10-28 12:53:30") al formato dd/mm/aaaa hh:mm. */
+export function fechaDeMysql(valor: string) {
+  const [f = "", h = ""] = valor.split(" ");
+  const [a, m, d] = f.split("-");
+  return `${d}/${m}/${a} ${h.slice(0, 5)}`;
 }
